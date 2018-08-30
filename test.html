@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>localResizeIMG</title>
+    <!--引入JQuery 用于异步上传图片-->
+    <!-- <script type="text/javascript" src="dist/jquery-3.1.1.min.js"></script> -->
+    <!--引入 lrz 插件 用于压缩图片-->
+    <!-- <script type="text/javascript" src="dist/lrz.bundle.js"></script> -->
+</head>
+<body>
+<input type="file" accept="image/jpeg" capture="camera">
+</body>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="view/js-spark-md5/spark-md5.min.js"></script>
+<script src="view/localResizeIMG/dist/lrz.bundle.js?v=7687367"></script>
+<!-- <script src="view/localResizeIMG/test/server.js?v=c8aaa97"></script> -->
+<script>
+//计算图片md5
+$("input[type=file]").change(function () {
+ 
+
+    /* 压缩图片 */
+    lrz(this.files[0]).then(function (rst) {
+        /* 处理成功后执行 */
+        // rst.formData.append('base64img', rst.base64); // 添加额外参数
+        $.ajax({
+            url: "upload.php",
+            type: "POST",
+            data: rst.formData,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                $("<img />").attr("src", data).appendTo("body");
+            }
+        });
+    }).catch(function (err) {
+        /* 处理失败后执行 */
+    }).always(function () {
+        /* 必然执行 */
+    })
+})
+</script>
+</body>
+</html>

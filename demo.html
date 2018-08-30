@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>ImgURL - 简单、纯粹的图床程序。</title>
+    <meta name="generator" content="EverEdit" />
+    <meta name="author" content="xiaoz.me" />
+    <meta name="keywords" content="ImgURL,免费图床,图床程序,小z图床,XZ Pic" />
+    <meta name="description" content="ImgURL是一个简单、纯粹的图床程序，让个人图床多一个选择。" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+<link rel="shortcut icon" href="favicon.ico"  type="image/x-icon" />
+    <link rel="Bookmark" href="favicon.ico" />
+    <link rel="stylesheet" href="https://1mg.tw//static/layui/css/layui.css">
+    <link rel="stylesheet" href="https://1mg.tw//static/style.css?v=1.2">
+    <script src = "https://libs.xiaoz.top/clipBoard.js/clipBoard.min.js"></script>
+
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <div class = "header">
+        <div class = "layui-container">
+            <div class = "layui-row">
+                <div class = "layui-col-lg12">
+                    <div class="left-menu"><a href="./"><h1>ImgURL</h1></a></div>
+                    <div class = "layui-hide-xs">
+                        <ul class="layui-nav menu" lay-filter="">
+                            <li class="layui-nav-item"><a href="./"><i class="layui-icon">&#xe68e;</i> 首页</a></li>
+                            <li class="layui-nav-item"><a href="found.php"><i class="layui-icon">&#xe60d;</i> 探索发现</a></li>
+                            <li class="layui-nav-item"><a href="sm.php"><i class="layui-icon">&#xe681;</i> SM.MS</a></li>
+                            <li class="layui-nav-item"><a href="https://doc.xiaoz.me/docs/imgurl" target = "_blank" rel = "nofollow"><i class="layui-icon">&#xe705;</i> 帮助文档</a></li>
+                            <li class="layui-nav-item"><a href="https://github.com/helloxz/imgurl" target = "_blank" rel = "nofollow"><i class="layui-icon">&#xe857;</i> 源码</a></li>
+                            <li class="layui-nav-item"><a href="about.php"><i class="layui-icon">&#xe60b;</i> 关于</a></li>
+                        </ul>
+                    </div>
+                    <div class = "layui-hide-lg layui-hide-xs">
+                        <ul class="layui-nav menu" lay-filter="">
+                            <li class="layui-nav-item"><a href="found.php">探索发现</a></li>
+                        </ul>
+                    </div>
+                    <div class="right-menu" class = "layui-hide-xs">
+                        <ul class="layui-nav menu" lay-filter="" class = "layui-hide-xs">
+                                                <li class="layui-nav-item">
+                            <a href=""><img src="./static/none.jpg" class="layui-nav-img">root</a>
+                            <dl class="layui-nav-child">
+                                <dd><a href="./admin/index.php">后台管理</a></dd>
+                                <dd><a href="./admin/logout.php">退出</a></dd>
+                            </dl>
+                        </li>
+                                                </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 顶部导航栏END -->
+<div class="layui-container">
+    <div class="layui-row">
+        <div class="layui-col-lg12 layui-col-xs12">
+        <div class="msg"><i class="layui-icon">&#xe645;</i>  注意：您上传的图片将会公开显示，勿上传隐私图片。游客限制每天5张，最大支持2M</div>
+            <!-- 上传图片表单 -->
+            <div class="layui-upload-drag" id="upimg">
+                <i class="layui-icon">&#xe67c;</i>
+                <p>点击上传，或将图片拖拽到此处</p>
+            </div>
+            <!-- 上传图片表单END -->
+        </div>
+    </div>
+    <div style = "clear:both;"></div>
+    <!-- 图片上传成功 -->
+    <div class="layui-row" id = "upok"> 
+        <div>
+            <div id="showpic" class = "layui-col-lg5"><a href="" target = "_blank"><img src=""></a></div>
+            <div id="piclink" class = "layui-col-lg6 layui-col-md-offset1">
+            <table class="layui-table" lay-skin="nob">
+                <colgroup>
+                    <col width="80">
+                    <col width="400">
+                    <col>
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td>URL</td>
+                        <td><input type="text" class="layui-input" id = "url"></td>
+                        <td><a href="javascript:;" class = "layui-btn layui-btn-sm" onclick = "copy('url')">复制</a></td>
+                    </tr>
+                    <tr>
+                        <td>HTML</td>
+                        <td><input type="text" class="layui-input" id = "html"></td>
+                        <td><a href="javascript:;" class = "layui-btn layui-btn-sm" onclick = "copy('html')">复制</a></td>
+                    </tr>
+                    <tr>
+                        <td>MarkDown</td>
+                        <td><input type="text" class="layui-input" id = "markdown"></td>
+                        <td><a href="javascript:;" class = "layui-btn layui-btn-sm" onclick = "copy('markdown')">复制</a></td>
+                    </tr>
+                    <tr>
+                        <td>BBcode</td>
+                        <td><input type="text" class="layui-input" id = "bbcode"></td>
+                        <td><a href="javascript:;" class = "layui-btn layui-btn-sm" onclick = "copy('bbcode')">复制</a></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>       
+    </div>
+    <!-- 图片上传成功END -->
+</div>
+
+  <div style = "clear:both;"></div>
+ <!-- 底部 -->
+ <div class = "footer">
+        <div class = "layui-container">
+            <div class = "layui-row">
+                <div class = "layui-col-lg12">
+                Copyright © 2017-2018 Powered by <a href="https://imgurl.org/" target = "_blank">ImgURL</a> | Author <a href="https://www.xiaoz.me/" target = "_blank">xiaoz.me</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 底部END -->
+    <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="./static/layui/layui.js"></script>
+    <script src="https://1mg.tw//static/embed.js?v=1.2"></script>
+</body>
+</html>
