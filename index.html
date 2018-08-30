@@ -6,10 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <link href="view/bootstrap-fileinput-4.4.9/css/fileinput.css" media="all" rel="stylesheet" type="text/css" />
-    <script src="https://cdnjs.loli.net/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="view/bootstrap-fileinput-4.4.9/js/fileinput.min.js" type="text/javascript"></script>
-    <script src="view/bootstrap-fileinput-4.4.9/js/locales/zh.js" type="text/javascript"></script>
-    <script src="https://cdnjs.loli.net/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" type="text/javascript"></script>
      <!-- <script src="view/localResizeIMG/dist/lrz.bundle.js" type="text/javascript"></script> -->
     <style>html{position:relative;min-height:100%}body{margin-bottom:60px}.footer{position:absolute;bottom:0;width:100%;height:60px;background-color:#f5f5f5}body>.container{padding:60px 15px 0}.container .text-muted{margin:20px 0}.footer>.container{padding-right:15px;padding-left:15px}code{font-size:80%}.kv-main h2 em{color:#aaa;font-size:.5em}</style>
 </head>
@@ -28,14 +24,37 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li class="active"><a href="/">Home</a></li>
-                    <li id="n_t"><a href="javascript:" id="today">Today</a></li>
-                    <li id="n_a"><a href="javascript:" id="about">About</a></li>
-                    <li id="n_c"><a href="javascript:" id="contact">Contact</a></li>
+                    <li id="n_t"><a href="#Today" id="today">Today</a></li>
+                    <li id="n_a"><a href="#About" id="about">About</a></li>
+                    <li id="n_c"><a href="#Contact" id="contact">Contact</a></li>
+                    <li id="n_s"><a href="#TermsofService" id="contact">Terms of Service</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li ><a href="https://github.com/lenyuadmin/1mg/commits/master">Change Log</a></li>
-                    <li ><a href="https://github.com/lenyuadmin/1mg/wiki">FAQ</a></li>
-                    <li ><a href="https://github.com/lenyuadmin/1mg">Github</a></li>
+                    <li><a href="https://github.com/lenyuadmin/1mg/commits/master" target="_blank">Change Log</a></li>
+                    <li><a href="https://github.com/lenyuadmin/1mg/wiki" target="_blank">FAQ</a></li>
+                    <li><a href="https://github.com/lenyuadmin/1mg" target="_blank">Github</a></li>
+                    <li><a href="/user/login.html">登录/注册</a></li>
+                    <li ><img src="https://gravatar.loli.net/avatar/b3c5b0e2e125fa4d7a44e3f89f20ea8c" width="40px" class="img-thumbnail"style="margin:4px 4px 0px 4px;display: none;" id="gravatar"></li>
+                    <li class="dropdown" style="display: none;">
+                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" id="username">
+                            <i class="fa fa-user"></i> admin <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="javascript:;"><i class="fa fa-fw fa-user"></i> 用户</a>
+                            </li>
+                            <li>
+                                <a href="javascript:;"><i class="fa fa-fw fa-envelope"></i> 消息盒</a>
+                            </li>
+                            <li>
+                                <a href="javascript:;"><i class="fa fa-fw fa-gear"></i> 设置</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a href="javascript:;" id="exit"><i class="fa fa-fw fa-power-off"></i> 退出</a>
+                            </li>
+                        </ul>
+                    </li>
                 </ul>
             </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
@@ -83,9 +102,14 @@
     <div class="container kv-main" id="qita"></div>
     <footer class="footer">
         <div class="container">
-            <p class="text-muted">Copyright &#9400; 2018 Jiaming Personal. All rights reserved. 请勿上传违反中国大陆和日本法律的图片，违者后果自负。</p>
+            <p class="text-muted">Copyright &#9400; 2018 Jiaming Personal. All rights reserved.</p>
         </div>
     </footer>
+    <script src="https://cdnjs.loli.net/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="view/bootstrap-fileinput-4.4.9/js/fileinput.min.js" type="text/javascript"></script>
+    <script src="view/bootstrap-fileinput-4.4.9/js/locales/zh.js" type="text/javascript"></script>
+    <script src="https://cdnjs.loli.net/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="https://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <script src="/view/index.js" type="text/javascript"></script>
 </body>
 </html>

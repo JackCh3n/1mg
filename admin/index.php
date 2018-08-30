@@ -13,6 +13,4 @@ $smarty->cache_lifetime = 120;//缓存有效时间 秒
 $smarty->assign('title',$config['web']['title']);
 $smarty->assign('page_js','index');
 $smarty->assign('data',$data);
-
-
 $smarty->display('tpl_index.php');
