@@ -10,9 +10,9 @@ $smarty = new Smarty;
 $smarty->debugging = false;//debug
 $smarty->caching = false;//缓存
 $smarty->cache_lifetime = 120;//缓存有效时间 秒
-$smarty->assign("title",'qwe');
-$smarty->assign("page_js",'index');
-$smarty->assign("data",$data);
+$smarty->assign('title',$config['web']['title']);
+$smarty->assign('page_js','index');
+$smarty->assign('data',$data);
 
 
 $smarty->display('tpl_index.php');

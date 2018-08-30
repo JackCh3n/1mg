@@ -34,7 +34,7 @@ $for_n=count($today_data)>12?12:count($today_data);
 for ($i=0; $i <$for_n ; $i++) { 
 	$today_out['url'][$i]=$config['web']['cdn'].$today_data[$i]['path'];
 	$today_out['iPC'][$i]=[
-		'caption'=>$today_data[$i]['path'],
+		'caption'=>$today_data[$i]['name'],
 		'size'=>$today_data[$i]['size'],
 		'key'=>$i
 	];

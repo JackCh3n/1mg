@@ -6,7 +6,7 @@ if (empty($_GET)) {
 	$smarty->debugging = false;//debug
 	$smarty->caching = false;//缓存
 	$smarty->cache_lifetime = 120;//缓存有效时间 秒
-	$smarty->assign("title",'qwe');
+	$smarty->assign('title',$config['web']['title']);
 	$smarty->assign("page_jscode",'<script src="../view/bootstrap-fileinput-4.4.9/js/fileinput.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/locales/zh.js" type="text/javascript"></script><script src="../view/admin/js/images.js" type="text/javascript"></script>');
 	// $smarty->assign("data",$data);
 
