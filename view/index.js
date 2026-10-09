@@ -1,4 +1,47 @@
 $(function () {
+    //已加载文件的md5缓存: previewId -> {md5, exists, url}
+    var md5Map = {};
+
+    function appendUrl(url, name) {
+        name = name || 'image';
+        $('#urlcode').append(url + "\n");
+        $('#htmlcode').append("&lt;img src=\""+ url +"\" alt=\""+ name +"\" title=\""+ name +"\" /&gt;" + "\n");
+        $('#bbcode').append("[img]"+ url +"[/img]" + "\n");
+        $('#markdown').append("!["+ name +"](" + url + ")" + "\n");
+        $('#markdownlinks').append("[!["+ name +"](" + url + ")]" +"(" + url + ")" + "\n");
+    }
+
+    //分块计算文件md5(用于秒传预检),SparkMD5加载失败时跳过,不影响正常上传
+    function computeFileMd5(file, callback) {
+        if (typeof SparkMD5 === 'undefined' || !window.FileReader || !file) {
+            return;
+        }
+        var blobSlice = File.prototype.mozSlice || File.prototype.webkitSlice || File.prototype.slice,
+            chunkSize = 2097152,
+            chunks = Math.ceil(file.size / chunkSize),
+            currentChunk = 0,
+            spark = new SparkMD5.ArrayBuffer(),
+            fileReader = new FileReader();
+        fileReader.onload = function (e) {
+            spark.append(e.target.result);
+            currentChunk++;
+            if (currentChunk < chunks) {
+                loadNext();
+            } else {
+                callback(spark.end());
+            }
+        };
+        fileReader.onerror = function () {
+            //读取出错就放弃秒传预检,走正常上传
+        };
+        function loadNext() {
+            var start = currentChunk * chunkSize,
+                end = start + chunkSize >= file.size ? file.size : start + chunkSize;
+            fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+        }
+        loadNext();
+    }
+
     $("#file").fileinput({
         uploadUrl: 'upload.php',
         allowedFileExtensions : ['jpeg', 'jpg', 'png', 'gif', 'bmp'],
@@ -6,27 +49,46 @@ $(function () {
         maxFileSize: 5120,
         maxFilesNum: 10,
         maxFileCount: 10,
-
     });
+
+    //文件加入队列后先算md5,若服务器已有同一文件则直接展示地址并从队列移除(秒传)
+    $('#file').on('fileloaded', function(event, file, previewId, index, reader) {
+        if (typeof SparkMD5 === 'undefined') {
+            return;
+        }
+        computeFileMd5(file, function(md5) {
+            $.getJSON('check.php', {md5: md5}, function (res) {
+                if (res && res.code == 'success') {
+                    md5Map[previewId] = {md5: md5, exists: true, url: res.data.url};
+                    $('#showurl').show();
+                    appendUrl(res.data.url, file.name);
+                    //从待上传列表中移除,无需再传
+                    $('#' + previewId).find('.kv-file-remove').click();
+                } else {
+                    md5Map[previewId] = {md5: md5, exists: false};
+                }
+            });
+        });
+    });
+
+    //兜底:上传请求发出前若秒传结果已出,直接取消该文件的上传
+    $('#file').on('filepreupload', function(event, data, previewId, index) {
+        var info = md5Map[previewId];
+        if (info && info.exists) {
+            $('#showurl').show();
+            return {message: data.files[0].name + ' 已存在,秒传成功'};
+        }
+    });
+
     $('#file').on('fileuploaded', function(event, data, previewId, index) {
         var form = data.form, files = data.files, extra = data.extra, response = data.response, reader = data.reader;
         if(response.code == 'success') {
-            if ( $("showurl").css("display") ) {
-                $('#urlcode').append(response.data.url + "\n");
-                $('#htmlcode').append("&lt;img src=\""+ response.data.url +"\" alt=\""+ files[index].name +"\" title=\""+ files[index].name +"\" /&gt;" + "\n");
-                $('#bbcode').append("[img]"+ response.data.url +"[/img]" + "\n");
-                $('#markdown').append("!["+ files[index].name +"](" + response.data.url + ")" + "\n");
-                $('#markdownlinks').append("[!["+ files[index].name +"](" + response.data.url + ")]" +"(" + response.data.url + ")" + "\n");
-                // $('#deletecode').append(response.data.delete + "\n");
-                
-            } else if (response.data.url) {
+            //原代码 $("showurl") 少了 # 号,选择器永远无效,导致判断走错分支
+            if ( $("#showurl").css("display") != 'none' ) {
+                appendUrl(response.data.url, files[index] ? files[index].name : 'image');
+            } else {
                 $("#showurl").show();
-                $('#urlcode').append(response.data.url + "\n");
-                $('#htmlcode').append("&lt;img src=\""+ response.data.url +"\" alt=\""+ files[index].name +"\" title=\""+ files[index].name +"\" /&gt;" + "\n");
-                $('#bbcode').append("[img]"+ response.data.url +"[/img]" + "\n");
-                $('#markdown').append("!["+ files[index].name +"](" + response.data.url + ")" + "\n");
-                $('#markdownlinks').append("[!["+ files[index].name +"](" + response.data.url + ")]" +"(" + response.data.url + ")" + "\n");
-                // $('#deletecode').append(response.data.delete + "\n");
+                appendUrl(response.data.url, files[index] ? files[index].name : 'image');
             }
         }
     });
@@ -39,15 +101,9 @@ $(function () {
             $("#file").fileinput('destroy').fileinput(data);
             $("#showurl").show();
             $.each(data['initialPreview'],function (index,value) {
-               $('#urlcode').append(value + "\n");
-               $('#htmlcode').append("&lt;img src=\""+ value +"\" alt=\""+ data['initialPreviewConfig'][index]['caption'] +"\" title=\""+ data['initialPreviewConfig'][index]['caption'] +"\" /&gt;" + "\n");
-                $('#bbcode').append("[img]"+ value +"[/img]" + "\n");
-                $('#markdown').append("!["+ data['initialPreviewConfig'][index]['caption'] +"](" + value + ")" + "\n");
-                $('#markdownlinks').append("[!["+ data['initialPreviewConfig'][index]['caption'] +"](" + value + ")]" +"(" + value+ ")" + "\n");
+               appendUrl(value, data['initialPreviewConfig'][index]['caption']);
             });
-            console.log(data);
         $('button.close.fileinput-remove').hide();
-        console.log('q')
 
         });
     });
@@ -78,8 +134,4 @@ $(function () {
         $('.dropdown').show();
         $('#gravatar').attr('src','https://gravatar.loli.net/avatar/'+user_gravatar);
     }
-    $('#exit').click(function () {
-        alert('1111')
-    })
-
 })

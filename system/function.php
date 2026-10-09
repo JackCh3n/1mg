@@ -151,22 +151,99 @@ function get_client_ip($type = 0,$adv=false) {
     $type       =  $type ? 1 : 0;
     static $ip  =   NULL;
     if ($ip !== NULL) return $ip[$type];
-    if($adv){
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $arr    =   explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            $pos    =   array_search('unknown',$arr);
-            if(false !== $pos) unset($arr[$pos]);
-            $ip     =   trim($arr[0]);
-        }elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip     =   $_SERVER['HTTP_CLIENT_IP'];
-        }elseif (isset($_SERVER['REMOTE_ADDR'])) {
-            $ip     =   $_SERVER['REMOTE_ADDR'];
-        }
-    }elseif (isset($_SERVER['REMOTE_ADDR'])) {
+    //只信任 REMOTE_ADDR,X-Forwarded-For 等请求头可被任意伪造,不能作为记录依据
+    if (isset($_SERVER['REMOTE_ADDR'])) {
         $ip     =   $_SERVER['REMOTE_ADDR'];
     }
     // IP地址合法验证
-    $long = sprintf("%u",ip2long($ip));
+    $long = $ip ? sprintf("%u",ip2long($ip)) : 0;
     $ip   = $long ? array($ip, $long) : array('0.0.0.0', 0);
     return $ip[$type];
+}
+
+/**
+ * 后台统一的Smarty实例(显式指定模板/编译目录,不依赖当前工作目录)
+ * @return Smarty
+ */
+function admin_smarty(){
+	$smarty = new Smarty;
+	$smarty->debugging = false;//debug
+	$smarty->caching = false;//缓存
+	$smarty->cache_lifetime = 120;//缓存有效时间 秒
+	$smarty->setTemplateDir(dirname(SYSTEM_ROOT).DIRECTORY_SEPARATOR.'admin');
+	$smarty->setCompileDir($smarty->getTemplateDir()[0].'templates_c');
+	if (!is_dir($smarty->getCompileDir())) {
+		@mkdir($smarty->getCompileDir(),0755,true);
+	}
+	return $smarty;
+}
+
+/**
+ * 统一输出json并结束
+ * @param mixed $data
+ */
+function json_exit($data){
+	header('Content-Type: application/json; charset=utf-8');
+	exit(json_encode($data, JSON_UNESCAPED_SLASHES));
+}
+
+/**
+ * 数据库中存放的相对路径统一为 / 分隔,保证生成的图片URL在Windows下也正确
+ * @param  string $path
+ * @return string
+ */
+function url_path($path){
+	return str_replace(DIRECTORY_SEPARATOR, '/', (string)$path);
+}
+
+/**
+ * 保存后台设置到 json 文件(不拼接PHP代码,避免写入代码注入)
+ * @param  array $new_config 要覆盖的 db/web 配置
+ * @return bool
+ */
+function save_user_config($new_config){
+	$dir=SYSTEM_ROOT;
+	$file=$dir.'config.user.json';
+	$old=[];
+	if (is_file($file)) {
+		$old=json_decode((string)file_get_contents($file),true);
+		if (!is_array($old)) {
+			$old=[];
+		}
+	}
+	foreach (['db','web'] as $sec) {
+		if (isset($new_config[$sec]) && is_array($new_config[$sec])) {
+			$old[$sec]=array_merge(isset($old[$sec]) && is_array($old[$sec])?$old[$sec]:[], $new_config[$sec]);
+		}
+	}
+	$json=json_encode($old, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+	//输入含非法UTF-8时json_encode返回false,绝不能把配置文件写空
+	if ($json===false) {
+		return false;
+	}
+	return (bool)file_put_contents($file, $json, LOCK_EX);
+}
+
+/**
+ * 上传文件内容的简单webshell特征扫描
+ * 图片里不应出现 "<?php" "<?=" 等标签,存在即拒绝(gif等不做重编码的格式尤其需要)
+ * @param  string $tmp_file
+ * @return bool  true=安全
+ */
+function scan_image_safe($tmp_file){
+	$fp=fopen($tmp_file,'rb');
+	if ($fp===false) {
+		return false;
+	}
+	$head='';
+	while (!feof($fp) && strlen($head)<1048576) {
+		$head.=fread($fp,65536);
+	}
+	fclose($fp);
+	foreach (['<?php','<?=', '<?script', '<?xml'.chr(0), '__HALT_COMPILER'] as $bad) {
+		if (stripos($head,$bad)!==false) {
+			return false;
+		}
+	}
+	return true;
 }

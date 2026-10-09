@@ -20,7 +20,6 @@ class SmartyCompilerException extends SmartyException
      *
      * @type int|null
      */
-    public $line = null;
 
     /**
      * The template source snippet relating to the error

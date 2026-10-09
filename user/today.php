@@ -3,46 +3,36 @@
  *  今日上传榜
  */
 require '../system'.DIRECTORY_SEPARATOR.'config.php';
-require SYSTEM_ROOT.'function.php';
-   $key = 'qwe';
-    $url = 'qweqwe';
-    // echo json_encode([
-    //     'initialPreview' => [
-    //         "i/1808/29/195645686.jpg",
-    //         "http://iph.href.lu/320x220",
-    //         "http://iph.href.lu/320x220",
-    //         "http://iph.href.lu/320x220",
-    //     ],
-    //     'initialPreviewConfig' => [
-    //         ['type'=>'image','caption' => "Sports-1.jpg", 'size' => 627392, 'width' => '120px','url' => $url, 'key' => $key],
-    //         ['caption' => "Sports-2.jpg", 'size' => 123123, 'width' => '120px', 'url' => $url, 'key' => $key],
-    //         ['caption' => "Sports-3.jpg", 'size' => 321233, 'width' => '120px', 'url' => $url, 'key' => $key],
-    //         ['caption' => "Sports-4.jpg", 'size' => 523131, 'width' => '120px', 'url' => $url, 'key' => $key],
-    //     ],
-    //     'append' => true // 是否把这些配置加入`initialPreview`。
-    //                      // 如果设置为`false`，它会重载初始预览。
-    //                      // 如果设置为`true`，它会加入初始预览之中。
-    //                      // 如果这个属性没有被设置或者没有传出，它会默认为`true`。
-    //                      
-    // ]);
-$today_data=$db->select('imginfo',['path','name','size'],['date[~]'=>date('Y-m-d'),'LIMIT'=>20,'see'=>1]);
-// if (count($today_out)<12) {
-// 	exit(json_encode(['code'=>110,'error'=>'没找到，过会再看看？']));
-// }
+require_once SYSTEM_ROOT.'function.php';
+
+$today_data=$db->select('imginfo',['id','path','name','size'],['date[~]'=>date('Y-m-d'),'see'=>1,'ORDER'=>['id'=>'DESC'],'LIMIT'=>20]);
+if (empty($today_data)) {
+	json_exit([
+		'initialPreview'=>[],
+		'initialPreviewConfig'=>[],
+		'initialPreviewAsData'=>true,
+		//uploadUrl相对于消费该json的页面(站点根目录的index.html)
+		'uploadUrl'=>'upload.php',
+		'overwriteInitial'=>false,
+	]);
+}
 shuffle($today_data);
-$for_n=count($today_data)>12?12:count($today_data);
-for ($i=0; $i <$for_n ; $i++) { 
-	$today_out['url'][$i]=$config['web']['cdn'].$today_data[$i]['path'];
+$today_data=array_slice($today_data,0,12);
+
+$today_out=['url'=>[],'iPC'=>[]];
+foreach ($today_data as $i=>$row) {
+	$today_out['url'][$i]=$config['web']['cdn'].url_path($row['path']);
 	$today_out['iPC'][$i]=[
-		'caption'=>$today_data[$i]['name'],
-		'size'=>$today_data[$i]['size'],
-		'key'=>$i
+		'caption'=>$row['name']?:url_path($row['path']),
+		'size'=>(int)$row['size'],
+		//用真实记录id,原来用的循环下标无法对应到记录
+		'key'=>$row['id'],
 	];
 }
-echo(json_encode([
+json_exit([
 	'initialPreview'=>$today_out['url'],
 	'initialPreviewConfig'=>$today_out['iPC'],
-	'initialPreviewAsData'=>true,'uploadUrl'=>'upload.php',
-]));
-unset($today_data,$today_out);
-// exit(json_encode(['initialPreview'=>$today_]));
+	'initialPreviewAsData'=>true,
+	'uploadUrl'=>'upload.php',
+	'overwriteInitial'=>false,
+]);

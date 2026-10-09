@@ -1058,7 +1058,7 @@ abstract class Smarty_Internal_TemplateCompilerBase
             flush();
         }
         $e = new SmartyCompilerException($error_text);
-        $e->line = $line;
+        //PHP8下Exception::$line为受保护属性,不能直接赋值(行号已包含在错误消息中)
         $e->source = trim(preg_replace('![\t\r\n]+!', ' ', $match[ $line - 1 ]));
         $e->desc = $args;
         $e->template = $this->template->source->filepath;

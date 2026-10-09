@@ -1,2 +1,5 @@
 admin/templates_c
-i
+i/*
+!i/.htaccess
+system/config.user.json
+system/*.sqlite

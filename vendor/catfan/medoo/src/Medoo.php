@@ -214,7 +214,7 @@ class Medoo
 			$stack[] = is_int($key) ? $value : $key . '=' . $value;
 		}
 
-		$dsn = $driver . ':' . implode($stack, ';');
+		$dsn = $driver . ':' . implode(';', $stack);
 
 		if (
 			in_array($this->type, ['mariadb', 'mysql', 'pgsql', 'sybase', 'mssql']) &&
@@ -486,7 +486,7 @@ class Medoo
 			}
 		}
 
-		return implode($stack, ',');
+		return implode(',', $stack);
 	}
 
 	protected function arrayQuote($array)
@@ -498,7 +498,7 @@ class Medoo
 			$stack[] = is_int($value) ? $value : $this->pdo->quote($value);
 		}
 
-		return implode($stack, ',');
+		return implode(',', $stack);
 	}
 
 	protected function innerConjunct($data, $map, $conjunctor, $outer_conjunctor)
@@ -748,7 +748,7 @@ class Medoo
 						$mode = ' ' . $mode_array[ $MATCH[ 'mode' ] ];
 					}
 
-					$columns = implode(array_map([$this, 'columnQuote'], $MATCH[ 'columns' ]), ', ');
+					$columns = implode(', ', array_map([$this, 'columnQuote'], $MATCH[ 'columns' ]));
 					$map_key = $this->mapKey();
 					$map[ $map_key ] = [$MATCH[ 'keyword' ], PDO::PARAM_STR];
 
@@ -769,7 +769,7 @@ class Medoo
 						$stack[] = $this->columnQuote($value);
 					}
 
-					$where_clause .= ' GROUP BY ' . implode($stack, ',');
+					$where_clause .= ' GROUP BY ' . implode(',', $stack);
 				}
 				elseif ($raw = $this->buildRaw($GROUP, $map))
 				{
@@ -817,7 +817,7 @@ class Medoo
 						}
 					}
 
-					$where_clause .= ' ORDER BY ' . implode($stack, ',');
+					$where_clause .= ' ORDER BY ' . implode(',', $stack);
 				}
 				elseif ($raw = $this->buildRaw($ORDER, $map))
 				{
@@ -926,7 +926,7 @@ class Medoo
 						// For ['column1', 'column2']
 						if (isset($relation[ 0 ]))
 						{
-							$relation = 'USING ("' . implode($relation, '", "') . '")';
+							$relation = 'USING ("' . implode('", "', $relation) . '")';
 						}
 						else
 						{
@@ -946,7 +946,7 @@ class Medoo
 								$this->tableQuote(isset($match[ 'alias' ]) ? $match[ 'alias' ] : $match[ 'table' ]) . '."' . $value . '"';
 							}
 
-							$relation = 'ON ' . implode($joins, ' AND ');
+							$relation = 'ON ' . implode(' AND ', $joins);
 						}
 					}
 
@@ -961,7 +961,7 @@ class Medoo
 				}
 			}
 
-			$table_query .= ' ' . implode($table_join, ' ');
+			$table_query .= ' ' . implode(' ', $table_join);
 		}
 		else
 		{
@@ -1257,7 +1257,7 @@ class Medoo
 				}
 			}
 
-			$stack[] = '(' . implode($values, ', ') . ')';
+			$stack[] = '(' . implode(', ', $values) . ')';
 		}
 
 		foreach ($columns as $key)
