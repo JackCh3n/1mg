@@ -29,11 +29,20 @@ if (!empty($_POST)) {
 			$cdn=trim((string)$_POST['cdn']);
 			$key=trim(strip_tags((string)$_POST['key']));
 			$pass=trim(strip_tags((string)$_POST['pass']));
+			$rate_hour=(int)$_POST['rate_hour'];
+			$webp=isset($_POST['webp_enabled'])?1:0;
+			$api_token=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['api_token']);
 			foreach ([[$title,'网站标题',1,50],[$key,'图片鉴黄Key',0,64],[$pass,'图片鉴黄口令',0,64]] as $v) {
 				if (mb_strlen($v[0])<$v[2] || mb_strlen($v[0])>$v[3]) {
 					$save_error=$v[1].'长度不合法';
 					break;
 				}
+			}
+			if ($save_error==='' && ($rate_hour<0 || $rate_hour>10000)) {
+				$save_error='每小时上传上限需在0-10000之间(0=不限制)';
+			}
+			if ($save_error==='' && mb_strlen($api_token)>64) {
+				$save_error='接口令牌过长';
 			}
 			if ($save_error==='') {
 				foreach ([['server',$server],['cdn',$cdn]] as $v) {
@@ -53,7 +62,11 @@ if (!empty($_POST)) {
 					'cdn'=>$cdn,
 					'img_level_key'=>$key,
 					'img_level_pass'=>$pass,
+					'rate_hour'=>$rate_hour,
+					'webp_enabled'=>$webp,
+					'api_token'=>$api_token,
 				]])) {
+					admin_log('settings_site','rate_hour='.$rate_hour.',webp='.$webp.',api_auth='.($api_token!==''?'on':'off'));
 					header('Location: seting.php?msg=site');
 					exit();
 				}
@@ -73,6 +86,7 @@ if (!empty($_POST)) {
 				$save_error='归档保留天数必须大于在线保留天数';
 			}else{
 				if (save_user_config(['web'=>['retention_online'=>$online,'retention_archive'=>$archive]])) {
+					admin_log('settings_policy','online='.$online.'d,archive='.$archive.'d');
 					header('Location: seting.php?msg=policy');
 					exit();
 				}
@@ -88,6 +102,7 @@ if (!empty($_POST)) {
 				$save_error='强调色格式不正确(#RRGGBB)';
 			}else{
 				if (save_user_config(['web'=>['default_skin'=>$skin,'accent'=>$accent]])) {
+					admin_log('settings_skin','skin='.$skin.',accent='.$accent);
 					header('Location: seting.php?msg=skin');
 					exit();
 				}
@@ -107,6 +122,7 @@ if (!empty($_POST)) {
 			}elseif (!admin_change_password($oldpass,$newpass)) {
 				$save_error='原密码错误或修改失败';
 			}else{
+				admin_log('password_change','');
 				header('Location: seting.php?msg=password');
 				exit();
 			}
@@ -147,6 +163,7 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 					'otp_enabled'=>1,
 				],['id'=>$_SESSION['admin_id']]);
 				unset($_SESSION['otp_setup_secret']);
+				admin_log('otp_enable','');
 				header('Location: seting.php?msg=otp_on');
 				exit();
 			}
@@ -157,6 +174,7 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 				$otp_error='验证码不正确,无法解除绑定';
 			}else{
 				$db->update('admin',['otp_secret'=>'','otp_enabled'=>0],['id'=>$_SESSION['admin_id']]);
+				admin_log('otp_disable','');
 				header('Location: seting.php?msg=otp_off');
 				exit();
 			}

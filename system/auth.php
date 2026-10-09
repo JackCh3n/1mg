@@ -112,6 +112,28 @@ function admin_verify_otp($code){
 }
 
 /**
+ * 管理员操作审计(登录后才有身份;写入失败不影响主流程)
+ * @param string $action 动作
+ * @param string $target 对象
+ */
+function admin_log($action, $target=''){
+	if (empty($_SESSION['admin_id'])) {
+		return;
+	}
+	try {
+		$GLOBALS['db']->insert('admin_log',[
+			'username'=>isset($_SESSION['admin_user'])?$_SESSION['admin_user']:'',
+			'action'=>(string)$action,
+			'target'=>mb_substr((string)$target,0,200),
+			'ip'=>get_client_ip(),
+			'date'=>date('Y-m-d H:i:s'),
+		]);
+	} catch (Exception $e) {
+		//审计失败不阻塞业务
+	}
+}
+
+/**
  * 建立完整登录态(账号密码+验证码都通过后调用)
  * @param array $row admin表行
  */
@@ -120,6 +142,7 @@ function admin_finish_login($row){
 	$_SESSION['admin_id']=(int)$row['id'];
 	$_SESSION['admin_user']=$row['username'];
 	$GLOBALS['db']->update('admin',['last_login'=>date('Y-m-d H:i:s')],['id'=>$row['id']]);
+	admin_log('login', $row['username']);
 }
 
 /**

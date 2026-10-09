@@ -518,3 +518,22 @@ textarea.form-control { resize: vertical; }
 	.site-nav .nav-links { display: none; }
 	.hero { padding: 34px 0 20px; }
 }
+
+/* 全页拖拽提示 */
+body.drag-hint::after {
+	content: '松开即可上传图片';
+	position: fixed;
+	inset: 0;
+	z-index: 999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: color-mix(in srgb, var(--accent) 14%, rgba(0,0,0,.25));
+	backdrop-filter: blur(3px);
+	color: var(--accent-strong);
+	font-size: 26px;
+	font-weight: 800;
+	pointer-events: none;
+	border: 3px dashed var(--accent);
+	border-radius: 6px;
+}

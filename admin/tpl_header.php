@@ -19,9 +19,17 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
                 仪表盘
             </a>
+            <a href="moderation.php"{if isset($nav_active) && $nav_active=='moderation'} class="active"{/if}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-9.5V5.2L12 2 4 5.2v7.3C4 18.4 12 22 12 22z"/><path d="M9 11.5l2 2 4-4.5"/></svg>
+                内容审核
+            </a>
             <a href="logs.php"{if isset($nav_active) && $nav_active=='logs'} class="active"{/if}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
                 上传日志
+            </a>
+            <a href="audit.php"{if isset($nav_active) && $nav_active=='audit'} class="active"{/if}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+                操作日志
             </a>
             <a href="images.php"{if isset($nav_active) && $nav_active=='images'} class="active"{/if}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.8" cy="8.8" r="1.8"/><path d="M21 15.5l-4.6-4.6a1.6 1.6 0 0 0-2.3 0L4 21"/></svg>
@@ -42,7 +50,7 @@
     </aside>
     <div class="admin-main">
         <header class="topbar">
-            {assign var="_titles" value=['index'=>'仪表盘','logs'=>'上传日志','images'=>'图片管理','seting'=>'网站设置']}
+            {assign var="_titles" value=['index'=>'仪表盘','moderation'=>'内容审核','logs'=>'上传日志','audit'=>'操作日志','images'=>'图片管理','seting'=>'网站设置']}
             <h1 class="page-title">{if isset($_titles[$nav_active])}{$_titles[$nav_active]}{/if}</h1>
             <div class="topbar-right">
                 <span class="who">{$admin_user|escape}</span>

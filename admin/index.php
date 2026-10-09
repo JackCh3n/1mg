@@ -19,11 +19,27 @@ $archive_msg='';
 if (isset($_GET['action']) && $_GET['action']=='archive_run' && isset($_GET['token'])) {
 	if (hash_equals(csrf_token(),(string)$_GET['token'])) {
 		archive_run((int)$config['web']['retention_online'],(int)$config['web']['retention_archive']);
+		admin_log('archive_run','retention='.$config['web']['retention_online'].'d/'.$config['web']['retention_archive'].'d');
 		header('Location: index.php');
 		exit();
 	}
 	$archive_msg='非法请求';
 }
+
+//孤儿文件清理
+$orphan_msg='';
+if (isset($_GET['action']) && $_GET['action']=='orphan' && isset($_GET['token'])) {
+	if (hash_equals(csrf_token(),(string)$_GET['token'])) {
+		$r=orphan_clean();
+		admin_log('orphan_clean','removed='.$r['removed'].',freed='.format_size($r['freed']));
+		$orphan_msg='清理完成: 移除 '.$r['removed'].' 个孤儿文件,释放 '.format_size($r['freed']);
+	}else{
+		$orphan_msg='非法请求';
+	}
+}
+
+//磁盘用量
+$usage=img_disk_usage();
 
 //统计
 $data=[
@@ -90,4 +106,7 @@ $smarty->assign('archive_total',$archive_rows_total);
 $smarty->assign('archive_files',$archive_files);
 $smarty->assign('csrf',csrf_token());
 $smarty->assign('archive_msg',$archive_msg);
+$smarty->assign('orphan_msg',$orphan_msg);
+$smarty->assign('disk_size',format_size($usage['size']));
+$smarty->assign('disk_files',$usage['files']);
 $smarty->display('tpl_index.php');

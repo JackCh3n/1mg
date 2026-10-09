@@ -36,6 +36,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                 <a href="#tos" id="tos" data-nav="tos">条款</a>
             </div>
             <div class="nav-right">
+                <a href="api.php">API</a>
                 <a href="https://github.com/lenyuadmin/1mg" target="_blank" rel="noopener">GitHub</a>
                 <button type="button" class="theme-toggle" data-mg-theme-toggle title="切换明暗皮肤">
                     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -53,7 +54,9 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                 <p>拖拽上传 · 自动压缩 · 相同文件秒传 · 单张 5MB,一次最多 10 张</p>
             </div>
             <div class="card upload-card">
-                <input id="file" type="file" multiple class="file" data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="10" name="file" accept="image/*">
+                <input id="file" type="file" multiple class="file"
+                    data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="10" name="file" accept="image/*"
+                    data-api-token="<?php echo htmlspecialchars($config['web']['api_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             </div>
             <div class="card" id="showurl" style="display:none">
                 <div class="tabs" id="result-tabs">
@@ -62,12 +65,14 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                     <button type="button" data-tab="bbcode">BBCode</button>
                     <button type="button" data-tab="markdown">Markdown</button>
                     <button type="button" data-tab="markdownlinks">Markdown+链接</button>
+                    <button type="button" data-tab="deletecode">删除链接</button>
                 </div>
                 <div class="tab-pane active" id="pane-urlcode"><pre><code id="urlcode"></code></pre></div>
                 <div class="tab-pane" id="pane-htmlcode"><pre><code id="htmlcode"></code></pre></div>
                 <div class="tab-pane" id="pane-bbcode"><pre><code id="bbcode"></code></pre></div>
                 <div class="tab-pane" id="pane-markdown"><pre><code id="markdown"></code></pre></div>
                 <div class="tab-pane" id="pane-markdownlinks"><pre><code id="markdownlinks"></code></pre></div>
+                <div class="tab-pane" id="pane-deletecode"><pre><code id="deletecode"></code></pre></div>
             </div>
         </section>
 

@@ -15,6 +15,24 @@
                 <div class="form-row"><label>CDN 域名</label><input type="text" class="form-control" name="cdn" value="{$config['web']['cdn']|escape}" placeholder="https://cdn.example.com/"></div>
                 <div class="form-row"><label>鉴黄 Key</label><input type="text" class="form-control" name="key" value="{$config['web']['img_level_key']|escape}"></div>
                 <div class="form-row"><label>鉴黄口令</label><input type="text" class="form-control" name="pass" value="{$config['web']['img_level_pass']|escape}"><span class="help-block" style="margin:0 0 0 10px;align-self:center">同时用作归档 cron 接口的访问口令</span></div>
+                <div class="form-row">
+                    <label>上传限速</label>
+                    <input type="number" class="form-control" name="rate_hour" min="0" max="10000" value="{$config['web']['rate_hour']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">次/小时/IP(0=不限制,含失败尝试)</span>
+                </div>
+                <div class="form-row">
+                    <label>WebP 转存</label>
+                    <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text)">
+                        <input type="checkbox" name="webp_enabled" value="1"{if $config['web']['webp_enabled']} checked{/if} style="width:17px;height:17px">
+                        上传时自动转为 WebP(体积更小)
+                    </label>
+                </div>
+                <div class="form-row">
+                    <label>API 令牌</label>
+                    <input type="text" class="form-control" name="api_token" id="api_token" value="{$config['web']['api_token']|escape}" placeholder="留空=开放上传接口" style="max-width:320px">
+                    <button type="button" class="btn btn-sm" onclick="var t='';var c='0123456789abcdef';for(var i=0;i<32;i++)t+=c[Math.floor(Math.random()*16)];document.getElementById('api_token').value=t;">生成</button>
+                </div>
+                <div class="form-row"><label></label><span class="help-block" style="align-self:center">非空时上传/预检接口需携带令牌(表单字段 api_token 或请求头 X-API-Token),详见 <a href="../api.php" target="_blank">API 文档</a></span></div>
                 <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
             </form>
         </div>

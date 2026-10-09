@@ -11,9 +11,23 @@ require SYSTEM_ROOT.'image.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+//API令牌门(后台设置api_token非空时,上传/预检都必须携带)
+$api_token=isset($config['web']['api_token'])?trim((string)$config['web']['api_token']):'';
+if ($api_token!=='') {
+	$given=isset($_POST['api_token'])?$_POST['api_token']:(isset($_GET['api_token'])?$_GET['api_token']:(isset($_SERVER['HTTP_X_API_TOKEN'])?$_SERVER['HTTP_X_API_TOKEN']:''));
+	if (!is_string($given) || !hash_equals($api_token,$given)) {
+		json_exit(['code'=>401,'error'=>'API token 无效']);
+	}
+}
+
 //没有选择文件(原写法 empty($_FILES == false) 逻辑相反,靠巧合工作)
 if (empty($_FILES['file']) || !is_array($_FILES['file']) || empty($_FILES['file']['tmp_name'])) {
 	json_exit(['code'=>110,'error'=>'没有选择文件']);
+}
+
+//上传频率限制(按IP按小时,含失败尝试)
+if (!rate_limit_check()) {
+	json_exit(['code'=>429,'error'=>'上传太频繁,请稍后再试']);
 }
 
 $file=$_FILES['file'];
@@ -61,14 +75,14 @@ $file_md5=md5_file($file['tmp_name']);
 $file_path='i/'.date('ym').'/'.date('d');
 
 //秒传:同一文件已存在且未被删除,直接返回已有地址
-$db_md5=$db->get('imginfo',['id','path','see'],['md5'=>$file_md5]);
+$db_md5=$db->get('imginfo',['id','path','see','delete_token'],['md5'=>$file_md5]);
 if (!empty($db_md5)) {
 	if ($db_md5['see']) {
 		$db_path=url_path($db_md5['path']);
 		if (is_file(ROOT.$db_path)) {
 			//文件已在服务器上,丢弃本次上传
 			@unlink($file['tmp_name']);
-			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].$db_path,'md5'=>$file_md5,'reused'=>true]]);
+			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].$db_path,'md5'=>$file_md5,'delete'=>$config['web']['cdn'].'delete.php?token='.urlencode($db_md5['delete_token']),'reused'=>true]]);
 		}else{
 			//记录存在但文件丢失,用本次上传补回文件
 			$dir=ROOT.dirname($db_path);
@@ -78,7 +92,7 @@ if (!empty($db_md5)) {
 			if (!@move_uploaded_file($file['tmp_name'],ROOT.$db_path) && !@rename($file['tmp_name'],ROOT.$db_path)) {
 				json_exit(['code'=>110,'error'=>'文件保存失败']);
 			}
-			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].$db_path,'md5'=>$file_md5,'reused'=>true]]);
+			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].$db_path,'md5'=>$file_md5,'delete'=>$config['web']['cdn'].'delete.php?token='.urlencode($db_md5['delete_token']),'reused'=>true]]);
 		}
 	}else{
 		//已被删除/判违规的文件,不允许再次上传
@@ -91,9 +105,9 @@ if (!is_dir(ROOT.$file_path) && !@mkdir(ROOT.$file_path,0755,true)) {
 	json_exit(['code'=>110,'error'=>'目录创建失败']);
 }
 
-//压缩保存(BMP会被转成PNG,最终扩展名以压缩结果为准)
+//压缩保存(WebP转换按后台设置,最终扩展名以压缩结果为准)
 $name_base=date('His').mt_rand(100,999);
-$result=compress_image($file['tmp_name'],ROOT.$file_path.'/'.$name_base.'.'.$file_ext,$file_ext);
+$result=compress_image($file['tmp_name'],ROOT.$file_path.'/'.$name_base.'.'.$file_ext,$file_ext,!empty($config['web']['webp_enabled']));
 if (!$result['ok']) {
 	json_exit(['code'=>110,'error'=>'文件保存失败']);
 }
@@ -102,6 +116,7 @@ $db_path=$file_path.'/'.$new_name;
 
 //入库(并发下md5撞车则以已有记录为准,同样走秒传)
 $insert_ok=false;
+$delete_token=random_token();
 try {
 	$insert_ok=(bool)$db->insert('imginfo',[
 		'ua'=>isset($_SERVER['HTTP_USER_AGENT'])?substr((string)$_SERVER['HTTP_USER_AGENT'],0,150):'',
@@ -114,18 +129,19 @@ try {
 		'compress'=>$result['compress'],
 		'level'=>0,
 		'see'=>1,
+		'delete_token'=>$delete_token,
 	]);
 } catch (Exception $e) {
 	$insert_ok=false;
 }
 if (!$insert_ok || $db->error()[1]) {
 	$err_code=$db->error()[1];
-	if ($err_code==1062) {
+	if ($err_code==1062 || $err_code==19) {
 		//唯一索引冲突:另一个请求刚插入了同一文件,返回那条记录(秒传)
-		$again=$db->get('imginfo',['path'],['md5'=>$file_md5]);
+		$again=$db->get('imginfo',['path','delete_token'],['md5'=>$file_md5]);
 		if (!empty($again)) {
 			@unlink(ROOT.$db_path);
-			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].url_path($again['path']),'md5'=>$file_md5,'reused'=>true]]);
+			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].url_path($again['path']),'md5'=>$file_md5,'delete'=>$config['web']['cdn'].'delete.php?token='.urlencode($again['delete_token']),'reused'=>true]]);
 		}
 	}elseif ($err_code) {
 		json_exit(['code'=>110,'error'=>'数据入库失败']);
@@ -144,6 +160,7 @@ try {
 json_exit(['code'=>'success','data'=>[
 	'url'=>$config['web']['cdn'].$db_path,
 	'md5'=>$file_md5,
+	'delete'=>$config['web']['cdn'].'delete.php?token='.urlencode($delete_token),
 	'reused'=>false,
 	'size'=>$result['size'],
 	'compress'=>$result['compress'],

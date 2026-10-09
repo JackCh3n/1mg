@@ -48,6 +48,7 @@ if (isset($_GET['type'])) {
 			json_exit(['code'=>110,'error'=>'记录不存在']);
 		}
 		$db->update('imginfo',['see'=>0],['id'=>$del_id]);
+		admin_log('image_delete',$del_path);
 		//只允许删除图片目录下的文件,防止路径被篡改后误删任意文件
 		$real_path=url_path($del_path);
 		if (strpos($real_path,'i/')===0 && is_file(ROOT.$real_path)) {
@@ -62,6 +63,7 @@ if (isset($_GET['type'])) {
 		}
 		$rest_id=(int)$_POST['key'];
 		$db->update('imginfo',['see'=>1],['id'=>$rest_id]);
+		admin_log('image_restore','id='.$rest_id);
 		json_exit(['code'=>'success','error'=>'恢复成功']);
 	}
 }

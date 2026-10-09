@@ -1,5 +1,5 @@
 /**
- * 前台逻辑: 上传(fileinput) + 秒传预检(SparkMD5) + 结果tabs + 内容区切换
+ * 前台逻辑: 上传(fileinput) + 秒传预检(SparkMD5) + 粘贴/全页拖拽上传 + 结果tabs + 内容区切换
  */
 $(function () {
 
@@ -19,9 +19,16 @@ $(function () {
         $('#markdown').append("![" + name + "](" + url + ")" + "\n");
         $('#markdownlinks').append("[![" + name + "](" + url + ")](" + url + ")" + "\n");
     }
+    function appendDelete(deleteUrl) {
+        if (!deleteUrl) return;
+        $('#deletecode').append(deleteUrl + "\n");
+    }
     function showResults() {
         $('#showurl').show();
     }
+
+    //API令牌(后台开启接口鉴权时随上传/预检携带)
+    var API_TOKEN = $('#file').attr('data-api-token') || '';
 
     /* ---------- 分块计算md5(秒传预检),SparkMD5加载失败时自动跳过 ---------- */
     function computeFileMd5(file, callback) {
@@ -49,6 +56,7 @@ $(function () {
     /* ---------- 上传控件 ---------- */
     $("#file").fileinput({
         uploadUrl: 'upload.php',
+        uploadExtraData: function () { return { api_token: API_TOKEN }; },
         allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp'],
         overwriteInitial: false,
         maxFileSize: 5120,
@@ -60,6 +68,61 @@ $(function () {
         fileActionSettings: { showZoom: false, showDrag: false }
     });
 
+    /* ---------- 粘贴上传 + 全页拖拽 ---------- */
+    //把File对象塞进fileinput队列
+    function addFiles(files) {
+        if (!files || !files.length || typeof DataTransfer === 'undefined') return;
+        var dt = new DataTransfer();
+        for (var i = 0; i < files.length; i++) {
+            if (/^image\//.test(files[i].type)) dt.items.add(files[i]);
+        }
+        if (!dt.files.length) return;
+        var input = document.getElementById('file');
+        input.files = dt.files;
+        $(input).trigger('change');
+    }
+
+    //Ctrl+V 粘贴截图直接上传
+    document.addEventListener('paste', function (e) {
+        if (!e.clipboardData || !e.clipboardData.items) return;
+        var files = [];
+        for (var i = 0; i < e.clipboardData.items.length; i++) {
+            var item = e.clipboardData.items[i];
+            if (item.kind === 'file' && /^image\//.test(item.type)) {
+                var f = item.getAsFile();
+                if (f) {
+                    //剪贴板图片常没有文件名,补一个
+                    if (!f.name) {
+                        f = new File([f], 'paste-' + Date.now() + '-' + i + '.' + (f.type.split('/')[1] || 'png'), { type: f.type });
+                    }
+                    files.push(f);
+                }
+            }
+        }
+        if (files.length) addFiles(files);
+    });
+
+    //拖拽图片到页面任意位置上传(拖到上传控件内时交给fileinput原生处理)
+    var dragDepth = 0;
+    document.addEventListener('dragenter', function (e) {
+        if (e.dataTransfer && e.dataTransfer.types && Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') !== -1) {
+            dragDepth++;
+            document.body.classList.add('drag-hint');
+        }
+    });
+    document.addEventListener('dragleave', function () {
+        if (dragDepth > 0 && --dragDepth === 0) document.body.classList.remove('drag-hint');
+    });
+    document.addEventListener('dragover', function (e) { e.preventDefault(); });
+    document.addEventListener('drop', function (e) {
+        dragDepth = 0;
+        document.body.classList.remove('drag-hint');
+        if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+        if ($(e.target).closest('.file-input').length) return;
+        e.preventDefault();
+        addFiles(e.dataTransfer.files);
+    });
+
     //已加载文件的md5缓存: previewId -> {md5, exists, url}
     var md5Map = {};
 
@@ -67,11 +130,12 @@ $(function () {
     $('#file').on('fileloaded', function (event, file, previewId, index, reader) {
         if (typeof SparkMD5 === 'undefined') return;
         computeFileMd5(file, function (md5) {
-            $.getJSON('check.php', { md5: md5 }, function (res) {
+            $.getJSON('check.php', { md5: md5, api_token: API_TOKEN }, function (res) {
                 if (res && res.code == 'success') {
                     md5Map[previewId] = { md5: md5, exists: true, url: res.data.url };
                     showResults();
                     appendUrl(res.data.url, file.name);
+                    appendDelete(res.data.delete);
                     $('#' + previewId).find('.kv-file-remove').click();
                 } else {
                     md5Map[previewId] = { md5: md5, exists: false };
@@ -94,6 +158,7 @@ $(function () {
         if (response.code == 'success') {
             showResults();
             appendUrl(response.data.url, files[index] ? files[index].name : 'image');
+            appendDelete(response.data.delete);
         }
     });
 
@@ -110,10 +175,12 @@ $(function () {
         $.getJSON('user/today.php', function (data) {
             $("#file").fileinput('destroy').fileinput($.extend({
                 uploadUrl: 'upload.php',
+                uploadExtraData: function () { return { api_token: API_TOKEN }; },
                 allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp'],
                 maxFileSize: 5120,
                 showCaption: false,
-        showZoom: false,
+                showZoom: false,
+                showCancel: false,
                 fileActionSettings: { showZoom: false, showDrag: false }
             }, data));
             var html = '<h2>今日上传</h2><p>今天已有 ' + data.initialPreview.length + ' 张图片,点击复制链接:</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">';

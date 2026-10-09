@@ -1,6 +1,7 @@
 {include file="tpl_header.php"}
 
     {if $archive_msg}<div class="alert alert-danger">{$archive_msg|escape}</div>{/if}
+    {if $orphan_msg}<div class="alert alert-success">{$orphan_msg|escape}</div>{/if}
 
     <!-- 统计卡片 -->
     <div class="stat-grid">
@@ -40,7 +41,11 @@
             </span>
         </div>
         <div class="acard-body">
-            <p class="text-muted" style="margin-top:0;font-size:13px">上次执行: {$archive_last_run|default:'从未'} · 备份位于 data/archive/ · cron 接口: <code>admin/archive.php?type=cron&amp;who=口令</code></p>
+            <p class="text-muted" style="margin-top:0;font-size:13px">
+                上次执行: {$archive_last_run|default:'从未'} · 备份位于 data/archive/ · cron 接口: <code>admin/archive.php?type=cron&amp;who=口令</code>
+                · 图片目录占用 <b>{$disk_size}</b> / {$disk_files} 个文件
+            </p>
+            <p style="margin-top:0"><a class="btn btn-sm" href="index.php?action=orphan&amp;token={$csrf}" onclick="return confirm('扫描并清理磁盘上没有数据库记录的孤儿图片文件?')">扫描清理孤儿文件</a></p>
             <table class="table">
                 <thead>
                     <tr><th>日期</th><th>记录数</th><th>大小</th><th style="width:130px">下载</th></tr>

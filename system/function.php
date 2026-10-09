@@ -203,10 +203,12 @@ function db_init_sqlite($db){
 		see INTEGER DEFAULT 1,
 		md5 TEXT DEFAULT '',
 		name TEXT DEFAULT '',
-		size TEXT DEFAULT ''
+		size TEXT DEFAULT '',
+		delete_token TEXT DEFAULT ''
 	)");
 	$pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
+	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_token ON imginfo(delete_token)");
 	$pdo->exec("CREATE TABLE IF NOT EXISTS admin (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		username TEXT UNIQUE,
@@ -219,12 +221,137 @@ function db_init_sqlite($db){
 		date TEXT PRIMARY KEY,
 		count INTEGER DEFAULT 0
 	)");
+	//上传频率限制(按IP按小时)
+	$pdo->exec("CREATE TABLE IF NOT EXISTS rate_limit (
+		ip TEXT,
+		slot TEXT,
+		count INTEGER DEFAULT 0,
+		PRIMARY KEY (ip, slot)
+	)");
+	//管理员操作审计
+	$pdo->exec("CREATE TABLE IF NOT EXISTS admin_log (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT DEFAULT '',
+		action TEXT DEFAULT '',
+		target TEXT DEFAULT '',
+		ip TEXT DEFAULT '',
+		date TEXT DEFAULT ''
+	)");
 	//首次运行播种默认管理员 admin / admin123456
 	$has_admin=$pdo->query("SELECT COUNT(*) FROM admin")->fetchColumn();
 	if (!$has_admin) {
 		$st=$pdo->prepare("INSERT INTO admin (username, password_hash) VALUES (?, ?)");
 		$st->execute(['admin', password_hash('admin123456', PASSWORD_DEFAULT)]);
 	}
+}
+
+/**
+ * 上传频率限制:按IP按小时计数,超限返回false
+ * 在上传入口调用,失败尝试也计数;配置 rate_hour<=0 表示不限制
+ * @return bool
+ */
+function rate_limit_check(){
+	global $db, $config;
+	$max=isset($config['web']['rate_hour'])?(int)$config['web']['rate_hour']:60;
+	if ($max<=0) {
+		return true;
+	}
+	try {
+		$ip=(string)get_client_ip();
+		$slot=date('YmdH');
+		$pdo=$db->pdo;
+		//顺带清理2小时前的旧槽位
+		$pdo->prepare("DELETE FROM rate_limit WHERE slot < ?")->execute([date('YmdH', strtotime('-2 hours'))]);
+		$pdo->prepare("INSERT INTO rate_limit (ip, slot, count) VALUES (?, ?, 1)
+			ON CONFLICT(ip, slot) DO UPDATE SET count = count + 1")->execute([$ip, $slot]);
+		$st=$pdo->prepare("SELECT count FROM rate_limit WHERE ip = ? AND slot = ?");
+		$st->execute([$ip, $slot]);
+		return ((int)$st->fetchColumn()) <= $max;
+	} catch (Exception $e) {
+		return true;//限速组件故障不阻塞上传
+	}
+}
+
+/**
+ * 生成随机令牌(32位十六进制)
+ * @return string
+ */
+function random_token(){
+	return bin2hex(random_bytes(16));
+}
+
+/**
+ * 递归统计目录大小与文件数
+ * @param  string $dir
+ * @return array ['size'=>字节,'files'=>数量]
+ */
+function dir_usage($dir){
+	$size=0;
+	$files=0;
+	foreach (glob($dir.'/*', GLOB_NOSORT) as $item) {
+		if (is_dir($item)) {
+			$sub=dir_usage($item);
+			$size+=$sub['size'];
+			$files+=$sub['files'];
+		}else{
+			$size+=filesize($item);
+			$files++;
+		}
+	}
+	return ['size'=>$size,'files'=>$files];
+}
+
+/**
+ * 图片目录磁盘用量(30分钟缓存,避免大目录频繁遍历)
+ * @return array ['size'=>字节,'files'=>数量,'cached'=>bool]
+ */
+function img_disk_usage(){
+	$cache_file=DATA_DIR.'usage_cache.json';
+	if (is_file($cache_file)) {
+		$cache=json_decode((string)file_get_contents($cache_file),true);
+		if (is_array($cache) && (time()-(int)$cache['time'])<1800) {
+			$cache['cached']=true;
+			return $cache;
+		}
+	}
+	$usage=dir_usage(ROOT.'i');
+	$usage['time']=time();
+	$usage['cached']=false;
+	@file_put_contents($cache_file, json_encode($usage), LOCK_EX);
+	return $usage;
+}
+
+/**
+ * 扫描并清理孤儿图片文件(磁盘上有、数据库无记录,且修改时间超过1小时的非上传中文件)
+ * @return array ['removed'=>数量,'freed'=>字节]
+ */
+function orphan_clean(){
+	global $db;
+	$paths=[];
+	foreach ($db->select('imginfo', ['path']) as $row) {
+		$paths[url_path($row['path'])]=true;
+	}
+	$removed=0;
+	$freed=0;
+	$cutoff=time()-3600;
+	$it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator(ROOT.'i', FilesystemIterator::SKIP_DOTS));
+	foreach ($it as $file) {
+		if (!$file->isFile()) {
+			continue;
+		}
+		$rel=str_replace('\\','/', substr($file->getPathname(), strlen(ROOT)));
+		if (isset($paths[$rel])) {
+			continue;
+		}
+		//只清理符合图床命名规则的文件,且跳过1小时内的新文件(可能正在上传)
+		if (!preg_match('#^i/\d{4}/\d{2}/\d{2}/\d{9}\.(jpg|png|gif|webp|bmp)$#', $rel) || $file->getMTime()>$cutoff) {
+			continue;
+		}
+		$freed+=$file->getSize();
+		@unlink($file->getPathname());
+		$removed++;
+	}
+	return ['removed'=>$removed,'freed'=>$freed];
 }
 
 /**

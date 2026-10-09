@@ -17,9 +17,10 @@ define('IMG_JPEG_QUALITY', 80);
  * @param  string $src    上传的临时文件
  * @param  string $dest   目标完整路径(含文件名)
  * @param  string $ext    小写扩展名(不含点) jpg/jpeg/png/gif/bmp
+ * @param  bool   $webp   是否优先转存WebP(GIF除外,体积更小)
  * @return array  ['ok'=>bool,'ext'=>最终扩展名,'size'=>最终大小,'compress'=>是否被压缩/转码]
  */
-function compress_image($src, $dest, $ext){
+function compress_image($src, $dest, $ext, $webp=false){
 	$info=getimagesize($src);
 	if ($info===false) {
 		return ['ok'=>false,'ext'=>$ext,'size'=>0,'compress'=>0];
@@ -36,9 +37,12 @@ function compress_image($src, $dest, $ext){
 		return ['ok'=>true,'ext'=>'gif','size'=>filesize($dest),'compress'=>0];
 	}
 
-	//BMP一律转成PNG
+	//BMP转PNG;开启WebP且GD支持时,jpg/png/bmp一律转WebP(GIF保持动图原样)
 	if ($ext==='bmp') {
-		$ext='png';
+		$ext=function_exists('imagewebp') ? 'webp' : 'png';
+		$compress=1;
+	}elseif ($webp && in_array($ext,['jpg','png']) && function_exists('imagewebp')) {
+		$ext='webp';
 		$compress=1;
 	}
 
@@ -95,7 +99,9 @@ function compress_image($src, $dest, $ext){
 
 	//重编码到目标路径
 	$done=false;
-	if ($ext==='png') {
+	if ($ext==='webp') {
+		$done=@imagewebp($img,$dest,82);
+	}elseif ($ext==='png') {
 		$done=@imagepng($img,$dest,6);
 	}else{
 		$done=@imagejpeg($img,$dest,IMG_JPEG_QUALITY);
