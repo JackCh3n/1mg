@@ -204,11 +204,21 @@ function db_init_sqlite($db){
 		md5 TEXT DEFAULT '',
 		name TEXT DEFAULT '',
 		size TEXT DEFAULT '',
-		delete_token TEXT DEFAULT ''
+		delete_token TEXT DEFAULT '',
+		user_id INTEGER DEFAULT 0
 	)");
 	$pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_token ON imginfo(delete_token)");
+	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_user ON imginfo(user_id)");
+	//注册用户
+	$pdo->exec("CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT UNIQUE,
+		password_hash TEXT,
+		created TEXT DEFAULT '',
+		last_login TEXT DEFAULT ''
+	)");
 	$pdo->exec("CREATE TABLE IF NOT EXISTS admin (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		username TEXT UNIQUE,

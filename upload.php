@@ -105,9 +105,9 @@ if (!is_dir(ROOT.$file_path) && !@mkdir(ROOT.$file_path,0755,true)) {
 	json_exit(['code'=>110,'error'=>'目录创建失败']);
 }
 
-//压缩保存(WebP转换按后台设置,最终扩展名以压缩结果为准)
+//压缩保存(WebP转换按后台设置,最终扩展名以压缩结果为准;落盘路径=基础名+最终扩展名)
 $name_base=date('His').mt_rand(100,999);
-$result=compress_image($file['tmp_name'],ROOT.$file_path.'/'.$name_base.'.'.$file_ext,$file_ext,!empty($config['web']['webp_enabled']));
+$result=compress_image($file['tmp_name'],ROOT.$file_path.'/'.$name_base,$file_ext,!empty($config['web']['webp_enabled']));
 if (!$result['ok']) {
 	json_exit(['code'=>110,'error'=>'文件保存失败']);
 }
@@ -130,6 +130,7 @@ try {
 		'level'=>0,
 		'see'=>1,
 		'delete_token'=>$delete_token,
+		'user_id'=>empty($_SESSION['user_id'])?0:(int)$_SESSION['user_id'],
 	]);
 } catch (Exception $e) {
 	$insert_ok=false;

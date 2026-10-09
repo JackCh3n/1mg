@@ -5,6 +5,7 @@
  */
 require 'system'.DIRECTORY_SEPARATOR.'config.php';
 require_once SYSTEM_ROOT.'function.php';
+require_once SYSTEM_ROOT.'auth.php';
 
 $token=isset($_REQUEST['token'])?trim((string)$_REQUEST['token']):'';
 $e_title=htmlspecialchars($config['web']['title'],ENT_QUOTES,'UTF-8');

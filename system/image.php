@@ -20,13 +20,15 @@ define('IMG_JPEG_QUALITY', 80);
  * @param  bool   $webp   是否优先转存WebP(GIF除外,体积更小)
  * @return array  ['ok'=>bool,'ext'=>最终扩展名,'size'=>最终大小,'compress'=>是否被压缩/转码]
  */
-function compress_image($src, $dest, $ext, $webp=false){
+function compress_image($src, $dest_base, $ext, $webp=false){
 	$info=getimagesize($src);
 	if ($info===false) {
 		return ['ok'=>false,'ext'=>$ext,'size'=>0,'compress'=>0];
 	}
 	$mime=$info['mime'];
 	$compress=0;
+	//最终落盘路径 = 基础名 + 最终扩展名(扩展名可能因WebP转换而变化)
+	$dest=$dest_base.'.'.$ext;
 
 	//GIF(含动图)不重编码,原样保存
 	if ($ext==='gif') {
@@ -45,6 +47,7 @@ function compress_image($src, $dest, $ext, $webp=false){
 		$ext='webp';
 		$compress=1;
 	}
+	$dest=$dest_base.'.'.$ext;
 
 	$img=null;
 	if ($mime==='image/jpeg' || $ext==='jpg') {
