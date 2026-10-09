@@ -1,0 +1,17 @@
+# 默认入口
+DirectoryIndex index.php index.html
+
+# 禁止访问敏感目录(system为纯PHP逻辑,正常入口都会先require,不允许直接访问)
+<FilesMatch "\.sqlite$|\.user\.json$|\.csv\.gz$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>

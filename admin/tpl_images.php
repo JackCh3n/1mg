@@ -1,24 +1,19 @@
 {include file="tpl_header.php"}
-    <link href="../view/bootstrap-fileinput-4.4.9/css/fileinput.css" media="all" rel="stylesheet" type="text/css" />
-    <!-- <script src="https://cdnjs.loli.net/ajax/libs/jquery/2.1.4/jquery.min.js"></script> -->
-    
-    <!-- <script src="https://cdnjs.loli.net/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" type="text/javascript"></script> -->
-{include file="tpl_navbar.php"}
-<div class="container-fluid">
-                <div class="row page-header-box">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            表格
-                        </h1>
-                    </div>
-                </div>
-<form enctype="multipart/form-data">
-    <div class="form-group">
-        <input id="file" type="file" multiple class="file" data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="10" name="file" accept="image/*">
-    </div>
-</form>
 
-            </div>
-            <!-- /.container-fluid -->
+    <div class="acard">
+        <div class="acard-head">上传图片 <span class="sub">支持 jpg / png / gif / bmp · 自动压缩 · 秒传去重</span></div>
+        <div class="acard-body">
+            <form enctype="multipart/form-data">
+                <input id="file" type="file" multiple class="file" data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="10" name="file" accept="image/*">
+            </form>
+        </div>
+    </div>
+
+    <div class="acard">
+        <div class="acard-head">最近上传 <span class="sub">点击缩略图上的删除按钮可下线图片</span></div>
+        <div class="acard-body" id="recent-box" data-csrf="{$csrf}">
+            <div class="empty-tip" id="recent-loading">加载中…</div>
+        </div>
+    </div>
 
 {include file="tpl_footer.php"}

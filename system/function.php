@@ -241,6 +241,12 @@ function admin_smarty(){
 	if (!is_dir($smarty->getCompileDir())) {
 		@mkdir($smarty->getCompileDir(),0755,true);
 	}
+	//皮肤默认值(后台可配置,访客可在页面上自行切换)
+	if (isset($GLOBALS['config']['web'])) {
+		$smarty->assign('default_skin',isset($GLOBALS['config']['web']['default_skin'])?$GLOBALS['config']['web']['default_skin']:'light');
+		$smarty->assign('default_accent',isset($GLOBALS['config']['web']['accent'])?$GLOBALS['config']['web']['accent']:'');
+		$smarty->assign('site_title',isset($GLOBALS['config']['web']['title'])?$GLOBALS['config']['web']['title']:'1mg');
+	}
 	return $smarty;
 }
 
