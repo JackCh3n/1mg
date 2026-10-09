@@ -22,6 +22,21 @@ function user_register($username, $password, $confirm){
 	if ($password!==$confirm) {
 		return '两次输入的密码不一致';
 	}
+	//注册限速:每IP每小时最多5次(复用rate_limit表,槽位加reg前缀)
+	try {
+		$pdo=$GLOBALS['db']->pdo;
+		$slot='reg'.date('YmdH');
+		$st=$pdo->prepare("INSERT INTO rate_limit (ip, slot, count) VALUES (?, ?, 1)
+			ON CONFLICT(ip, slot) DO UPDATE SET count = count + 1");
+		$st->execute([(string)get_client_ip(), $slot]);
+		$q=$pdo->prepare("SELECT count FROM rate_limit WHERE ip = ? AND slot = ?");
+		$q->execute([(string)get_client_ip(), $slot]);
+		if ((int)$q->fetchColumn() > 5) {
+			return '注册太频繁,请稍后再试';
+		}
+	} catch (Exception $e) {
+		//限速故障不阻塞注册
+	}
 	$exists=$GLOBALS['db']->get('users','id',['username'=>$username]);
 	if (!empty($exists)) {
 		return '用户名已被占用';

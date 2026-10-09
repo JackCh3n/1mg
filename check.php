@@ -28,6 +28,7 @@ if (empty($db_md5) || !$db_md5['see'] || !is_file(ROOT.url_path($db_md5['path'])
 	json_exit(['code'=>404,'error'=>'文件不存在,请直接上传']);
 }
 
+//注意:预检不返回删除令牌,只有实际上传(拥有该文件)才能获得删除链接
 json_exit(['code'=>'success','data'=>[
 	'url'=>$config['web']['cdn'].url_path($db_md5['path']),
 	'md5'=>$file_md5,

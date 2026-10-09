@@ -53,13 +53,13 @@ $file_ext=strtolower(ltrim((string)strrchr($file['name'],'.'),'.'));
 if ($file_ext==='jpeg') {
 	$file_ext='jpg';
 }
-if (!in_array($file_ext,['jpg','png','bmp','gif'])) {
+if (!in_array($file_ext,['jpg','png','bmp','gif','webp'])) {
 	json_exit(['code'=>110,'error'=>'扩展名不允许']);
 }
 
 //校验文件真实内容是图片(getimagesize只认文件头,故配合内容扫描)
 $size_info=getimagesize($file['tmp_name']);
-if ($size_info===false || !in_array($size_info['mime'],['image/jpeg','image/png','image/gif','image/bmp','image/x-ms-bmp','image/x-bmp'])) {
+if ($size_info===false || !in_array($size_info['mime'],['image/jpeg','image/png','image/gif','image/bmp','image/x-ms-bmp','image/x-bmp','image/webp'])) {
 	json_exit(['code'=>110,'error'=>'只允许上传图片文件']);
 }
 
@@ -96,7 +96,7 @@ if (!empty($db_md5)) {
 		}
 	}else{
 		//已被删除/判违规的文件,不允许再次上传
-		json_exit(['code'=>110,'error'=>'系统检测,你上传的极有可能是违规图片,请不要上传违规图片.']);
+		json_exit(['code'=>110,'error'=>'该图片已被删除或判定违规,不允许重复上传']);
 	}
 }
 

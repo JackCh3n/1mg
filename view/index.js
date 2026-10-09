@@ -57,7 +57,7 @@ $(function () {
     $("#file").fileinput({
         uploadUrl: 'upload.php',
         uploadExtraData: function () { return { api_token: API_TOKEN }; },
-        allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp'],
+        allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
         overwriteInitial: false,
         maxFileSize: 5120,
         maxFilesNum: 10,
@@ -176,7 +176,7 @@ $(function () {
             $("#file").fileinput('destroy').fileinput($.extend({
                 uploadUrl: 'upload.php',
                 uploadExtraData: function () { return { api_token: API_TOKEN }; },
-                allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp'],
+                allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
                 maxFileSize: 5120,
                 showCaption: false,
                 showZoom: false,

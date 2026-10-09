@@ -32,6 +32,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                 <a href="/" class="active" data-nav="home">首页</a>
                 <a href="#today" id="today" data-nav="today">今日</a>
                 <a href="#about" id="about" data-nav="about">关于</a>
+                <a href="#help" data-nav="help">帮助</a>
                 <a href="#contact" id="contact" data-nav="contact">联系</a>
                 <a href="#tos" id="tos" data-nav="tos">条款</a>
             </div>
@@ -84,6 +85,55 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
 
         <!-- 其他内容区(今日/关于/联系/条款) -->
         <section id="qita" class="prose" style="display:none"></section>
+
+        <!-- 常用帮助 -->
+        <section id="help" class="prose">
+            <h2 style="margin-top:8px">常用帮助</h2>
+            <div class="card">
+                <h3 style="margin-top:0">怎么上传图片?</h3>
+                <ul style="margin:0">
+                    <li><b>点击上传</b>:点击绿色「Browse」按钮选择图片,再点 Upload 开始上传</li>
+                    <li><b>拖拽上传</b>:把图片直接拖到本页面的任意位置,松手即传</li>
+                    <li><b>粘贴上传</b>:截图后在页面任意位置按 <code>Ctrl + V</code> 直接上传</li>
+                    <li>上传完成后,下方会自动生成 <b>URL / HTML / BBCode / Markdown / 删除链接</b> 五种格式,点击对应标签切换复制</li>
+                    <li>相同内容的图片会自动<b>秒传</b>(不重复占用空间,直接返回已有链接)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">图片限制</h3>
+                <ul style="margin:0">
+                    <li>单张不超过 <b>5MB</b>,一次最多 <b>10 张</b></li>
+                    <li>支持格式:<b>jpg / png / gif / bmp / webp</b>(gif 动图保持原样,其余自动压缩并转存为更小的 WebP)</li>
+                    <li>超大图片会自动等比缩放(最长边 2560px),手机竖拍照片会按 EXIF 自动转正</li>
+                    <li>为防滥用,每 IP 每小时有上传次数限制(默认 60 次,超限会提示稍后再试)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">图片保存多久?</h3>
+                <ul style="margin:0">
+                    <li><b>图片外链长期有效</b>:文件本身不会被自动删除,外链可以一直引用</li>
+                    <li>上传<b>记录</b>在线保留 <?php echo (int)($config['web']['retention_online'] ?? 7); ?> 天(可在后台调整),超期后转入压缩归档备份,备份保留 <?php echo (int)($config['web']['retention_archive'] ?? 180); ?> 天</li>
+                    <li>违规图片会被随时删除;上传时返回的「删除链接」可随时自主删除自己的图片</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">API 与第三方软件接入</h3>
+                <ul style="margin:0">
+                    <li>提供标准 HTTP 上传接口,详见 <a href="api.php">API 文档</a>(含参数说明与响应格式)</li>
+                    <li>已支持/可接入的工具:<b>PicGo</b>(安装 custom web-uploader 插件)、<b>uTools</b>、以及任何支持"自定义 Web 上传"的软件</li>
+                    <li>若站点开启了接口令牌,在工具中配置 <code>api_token</code> 或请求头 <code>X-API-Token</code> 即可</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">哪些内容不允许上传?</h3>
+                <ul style="margin:0">
+                    <li>含有色情、暴力、恐怖、血腥内容的图片</li>
+                    <li>侵犯版权、隐私或未经授权的图片;含有违规信息/二维码的图片</li>
+                    <li>其他违反中华人民共和国法律法规的图片</li>
+                    <li>完整条款见 <a href="#tos" onclick="document.getElementById('tos').click();return false;">服务条款</a>;违规图片将被删除,严重者封禁来源 IP</li>
+                </ul>
+            </div>
+        </section>
     </div>
 
     <footer class="site-footer">

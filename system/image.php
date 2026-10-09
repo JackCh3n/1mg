@@ -59,6 +59,11 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 		$img=@imagecreatefrompng($src);
 	}elseif ($mime==='image/gif') {
 		$img=@imagecreatefromgif($src);
+	}elseif ($mime==='image/webp' || $ext==='webp') {
+		$img=@imagecreatefromwebp($src);
+		//WebP输入统一重编码输出(剥离元数据),关闭WebP时也保持webp
+		$ext='webp';
+		$compress=1;
 	}elseif (in_array($mime,['image/bmp','image/x-ms-bmp','image/x-bmp'])) {
 		$img=@imagecreatefrombmp($src);
 	}
