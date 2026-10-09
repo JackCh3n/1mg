@@ -1,74 +1,38 @@
-/*
- Navicat Premium Data Transfer
+-- 1mg 图床 SQLite 数据结构
+-- 说明: 程序首次运行时会在 data/1mg.sqlite 自动创建以下结构,此文件仅作参考
+-- 默认管理员: admin / admin123456 (登录后台后请立即修改密码并绑定两步验证)
 
- Source Server         : loaclhost
- Source Server Type    : MySQL
- Source Server Version : 50723
- Source Host           : localhost:3306
- Source Schema         : tu
+CREATE TABLE IF NOT EXISTS imginfo (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  path TEXT DEFAULT '',            --图片相对路径 i/yy mm/dd/xxx.jpg
+  ip TEXT DEFAULT '',
+  ua TEXT DEFAULT '',
+  date TEXT DEFAULT '',            --Y-m-d H:i:s
+  dir TEXT DEFAULT '',
+  compress INTEGER DEFAULT 0,      --是否被压缩/转码
+  level INTEGER DEFAULT 0,         --鉴黄等级 1大众 2青少年 3成人
+  see INTEGER DEFAULT 1,           --1正常 0已删除/违规
+  md5 TEXT DEFAULT '',             --文件md5(秒传)
+  name TEXT DEFAULT '',
+  size TEXT DEFAULT ''
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5);
+CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date);
 
- Target Server Type    : MySQL
- Target Server Version : 50723
- File Encoding         : 65001
+CREATE TABLE IF NOT EXISTS admin (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE,
+  password_hash TEXT,
+  otp_secret TEXT DEFAULT '',      --TOTP密钥(加密存储)
+  otp_enabled INTEGER DEFAULT 0,   --两步验证开关
+  last_login TEXT DEFAULT ''
+);
 
- Date: 30/08/2018 18:31:36
-*/
+--每日上传统计(活跃日历数据源,独立于imginfo保留策略长期保存)
+CREATE TABLE IF NOT EXISTS stats_daily (
+  date TEXT PRIMARY KEY,           --Y-m-d
+  count INTEGER DEFAULT 0
+);
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
--- ----------------------------
--- Table structure for imginfo
--- ----------------------------
-DROP TABLE IF EXISTS `imginfo`;
-CREATE TABLE `imginfo` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `path` varchar(30) DEFAULT NULL,
-  `ip` varchar(18) DEFAULT NULL,
-  `ua` varchar(150) DEFAULT NULL,
-  `date` varchar(20) DEFAULT NULL,
-  `dir` varchar(25) DEFAULT NULL,
-  `compress` tinyint(2) DEFAULT '0',
-  `level` tinyint(2) DEFAULT '0',
-  `see` tinyint(2) DEFAULT '1',
-  `md5` varchar(32) DEFAULT NULL,
-  `name` varchar(15) DEFAULT NULL,
-  `size` varchar(10) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_md5` (`md5`),
-  KEY `idx_date` (`date`),
-  KEY `idx_ip` (`ip`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Table structure for sm
--- ----------------------------
-DROP TABLE IF EXISTS `sm`;
-CREATE TABLE `sm` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ip` varchar(25) DEFAULT NULL,
-  `ua` varchar(255) DEFAULT NULL,
-  `date` varchar(25) DEFAULT NULL,
-  `url` varchar(255) DEFAULT NULL,
-  `delete` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Table structure for admin
--- 默认账号: admin  默认密码: admin123456  (登录后请在"网站设置"中修改)
--- ----------------------------
-DROP TABLE IF EXISTS `admin`;
-CREATE TABLE `admin` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(32) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `last_login` varchar(20) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uniq_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `admin` (`username`, `password_hash`) VALUES
-('admin', '$2y$10$R8LDJ.GfstAQcuwqjBXzjOSa8AA61uIoM1SUoc4sYVMNtFHZxQh6C');
-
-SET FOREIGN_KEY_CHECKS = 1;
+--数据归档说明(三级保留: 在线7天 -> 归档180天 -> 删除)
+--归档文件为 data/archive/yyyymmdd.csv.gz,由 system/archive.php 生成,不存数据库

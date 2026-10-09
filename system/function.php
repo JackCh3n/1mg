@@ -162,6 +162,72 @@ function get_client_ip($type = 0,$adv=false) {
 }
 
 /**
+ * 字节数转可读大小
+ * @param  int $size
+ * @return string
+ */
+function format_size($size){
+	if ($size>=1048576) {
+		return round($size/1048576,2).' MB';
+	}
+	if ($size>=1024) {
+		return round($size/1024,2).' KB';
+	}
+	return (int)$size.' B';
+}
+
+/**
+ * SQLite自动初始化:建表/索引/默认管理员(无历史数据,全新库起步)
+ * @param Medoo $db
+ */
+function db_init_sqlite($db){
+	static $done=false;
+	if ($done) {
+		return;
+	}
+	$done=true;
+	//数据目录
+	if (!is_dir(DATA_DIR)) {
+		@mkdir(DATA_DIR,0755,true);
+	}
+	$pdo=$db->pdo;
+	$pdo->exec("CREATE TABLE IF NOT EXISTS imginfo (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		path TEXT DEFAULT '',
+		ip TEXT DEFAULT '',
+		ua TEXT DEFAULT '',
+		date TEXT DEFAULT '',
+		dir TEXT DEFAULT '',
+		compress INTEGER DEFAULT 0,
+		level INTEGER DEFAULT 0,
+		see INTEGER DEFAULT 1,
+		md5 TEXT DEFAULT '',
+		name TEXT DEFAULT '',
+		size TEXT DEFAULT ''
+	)");
+	$pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5)");
+	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
+	$pdo->exec("CREATE TABLE IF NOT EXISTS admin (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT UNIQUE,
+		password_hash TEXT,
+		otp_secret TEXT DEFAULT '',
+		otp_enabled INTEGER DEFAULT 0,
+		last_login TEXT DEFAULT ''
+	)");
+	$pdo->exec("CREATE TABLE IF NOT EXISTS stats_daily (
+		date TEXT PRIMARY KEY,
+		count INTEGER DEFAULT 0
+	)");
+	//首次运行播种默认管理员 admin / admin123456
+	$has_admin=$pdo->query("SELECT COUNT(*) FROM admin")->fetchColumn();
+	if (!$has_admin) {
+		$st=$pdo->prepare("INSERT INTO admin (username, password_hash) VALUES (?, ?)");
+		$st->execute(['admin', password_hash('admin123456', PASSWORD_DEFAULT)]);
+	}
+}
+
+/**
  * 后台统一的Smarty实例(显式指定模板/编译目录,不依赖当前工作目录)
  * @return Smarty
  */

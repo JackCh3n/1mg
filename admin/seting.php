@@ -1,7 +1,7 @@
 <?php
 /**
  * 网站设置
- * 保存到 system/config.user.json(不写PHP文件,避免代码注入),改数据库配置前会先测试连接
+ * 保存到 system/config.user.json(不写PHP文件,避免代码注入)
  */
 require '../system/config.php';
 require SYSTEM_ROOT.'auth.php';
@@ -10,7 +10,7 @@ admin_require_login();
 $save_error='';
 $save_ok='';
 if (!empty($_POST)) {
-	//所有入库/落盘的内容必须是合法UTF-8
+	//所有落盘的内容必须是合法UTF-8
 	foreach ($_POST as $pv) {
 		if (is_string($pv) && !mb_check_encoding($pv,'UTF-8')) {
 			$save_error='输入内容存在非法字符';
@@ -29,13 +29,6 @@ if (!empty($_POST)) {
 			$cdn=trim((string)$_POST['cdn']);
 			$key=trim(strip_tags((string)$_POST['key']));
 			$pass=trim(strip_tags((string)$_POST['pass']));
-			foreach ([$title,$server,$cdn,$key,$pass] as $v) {
-				//配置要以JSON落盘,非法UTF-8一律拒绝
-				if (!mb_check_encoding($v,'UTF-8')) {
-					$save_error='输入内容存在非法字符';
-					break;
-				}
-			}
 			foreach ([[$title,'网站标题',1,50],[$key,'图片鉴黄Key',0,64],[$pass,'图片鉴黄口令',0,64]] as $v) {
 				if (mb_strlen($v[0])<$v[2] || mb_strlen($v[0])>$v[3]) {
 					$save_error=$v[1].'长度不合法';
@@ -68,50 +61,37 @@ if (!empty($_POST)) {
 			}
 		}
 
-		//数据库设置(先测试连接,成功才保存)
-		if ($action==='db') {
-			$db_server=trim((string)$_POST['db_server']);
-			$db_port=(int)$_POST['db_port'];
-			$db_user=trim((string)$_POST['db_user']);
-			$db_pass=(string)$_POST['db_pass'];
-			$db_name=trim((string)$_POST['db_name']);
-			$db_charset=in_array($_POST['db_charset'],['utf8','utf8mb4','gbk','latin1'])?$_POST['db_charset']:'utf8';
-			if (!preg_match('/^[A-Za-z0-9_.-]{1,100}$/',$db_server)) {
-				$save_error='数据库地址格式不正确';
-			}elseif ($db_port<1 || $db_port>65535) {
-				$save_error='数据库端口不正确';
-			}elseif (!preg_match('/^[A-Za-z0-9_.-]{1,32}$/',$db_user)) {
-				$save_error='数据库用户名格式不正确';
-			}elseif (mb_strlen($db_pass)>64) {
-				$save_error='数据库密码过长';
-			}elseif (!preg_match('/^[A-Za-z0-9_]{1,64}$/',$db_name)) {
-				$save_error='数据库名格式不正确';
-			}
-			if ($save_error==='') {
-				try {
-					$test=new PDO(
-						"mysql:host={$db_server};port={$db_port};dbname={$db_name};charset={$db_charset}",
-						$db_user,
-						$db_pass,
-						[PDO::ATTR_TIMEOUT=>5]
-					);
-					$test=null;
-					if (save_user_config(['db'=>[
-						'server'=>$db_server,
-						'port'=>$db_port,
-						'username'=>$db_user,
-						'password'=>$db_pass,
-						'database_name'=>$db_name,
-						'charset'=>$db_charset,
-						'database_type'=>'mysql',
-					]])) {
-						header('Location: seting.php?msg=db');
-						exit();
-					}
-					$save_error='配置文件写入失败,请检查 system 目录权限';
-				} catch (PDOException $e) {
-					$save_error='数据库连接失败,设置未保存,请检查填写内容';
+		//数据保留策略
+		if ($action==='policy') {
+			$online=(int)$_POST['retention_online'];
+			$archive=(int)$_POST['retention_archive'];
+			if ($online<1 || $online>365) {
+				$save_error='在线保留天数需在1-365之间';
+			}elseif ($archive<7 || $archive>3650) {
+				$save_error='归档保留天数需在7-3650之间';
+			}elseif ($archive<=$online) {
+				$save_error='归档保留天数必须大于在线保留天数';
+			}else{
+				if (save_user_config(['web'=>['retention_online'=>$online,'retention_archive'=>$archive]])) {
+					header('Location: seting.php?msg=policy');
+					exit();
 				}
+				$save_error='配置文件写入失败,请检查 system 目录权限';
+			}
+		}
+
+		//界面皮肤
+		if ($action==='skin') {
+			$skin=in_array($_POST['default_skin'],['light','dark'])?$_POST['default_skin']:'light';
+			$accent=strtolower(trim((string)$_POST['accent']));
+			if ($accent!=='' && !preg_match('/^#[0-9a-f]{6}$/',$accent)) {
+				$save_error='强调色格式不正确(#RRGGBB)';
+			}else{
+				if (save_user_config(['web'=>['default_skin'=>$skin,'accent'=>$accent]])) {
+					header('Location: seting.php?msg=skin');
+					exit();
+				}
+				$save_error='配置文件写入失败,请检查 system 目录权限';
 			}
 		}
 
@@ -134,8 +114,82 @@ if (!empty($_POST)) {
 	}
 }
 
+//两步验证操作
+$otp_msg='';
+$otp_error='';
+$otp_setup=isset($_SESSION['otp_setup_secret'])?$_SESSION['otp_setup_secret']:'';
+if (!empty($_POST['action']) && $_POST['action']==='otp') {
+	if (!csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {
+		$otp_error='页面已过期,请重新提交';
+	}else{
+		$otp_action=isset($_POST['otp_action'])?$_POST['otp_action']:'';
+		$code=preg_replace('/\D/','', (string)$_POST['code']);
+		if ($otp_action==='begin') {
+			//生成新密钥待确认
+			require_once SYSTEM_ROOT.'totp.php';
+			$_SESSION['otp_setup_secret']=totp_generate_secret();
+			header('Location: seting.php');
+			exit();
+		}elseif ($otp_action==='cancel') {
+			unset($_SESSION['otp_setup_secret']);
+			header('Location: seting.php');
+			exit();
+		}elseif ($otp_action==='enable') {
+			require_once SYSTEM_ROOT.'totp.php';
+			if ($otp_setup==='' ) {
+				$otp_error='请先生成密钥';
+			}elseif (!totp_verify($otp_setup, $code)) {
+				$otp_error='验证码不正确,请重试';
+			}else{
+				$row=$db->get('admin',['id'],['id'=>$_SESSION['admin_id']]);
+				$db->update('admin',[
+					'otp_secret'=>encdec_openssl($otp_setup),
+					'otp_enabled'=>1,
+				],['id'=>$_SESSION['admin_id']]);
+				unset($_SESSION['otp_setup_secret']);
+				header('Location: seting.php?msg=otp_on');
+				exit();
+			}
+		}elseif ($otp_action==='disable') {
+			require_once SYSTEM_ROOT.'totp.php';
+			$secret=admin_get_otp_secret();
+			if ($secret==='' || !totp_verify($secret,$code)) {
+				$otp_error='验证码不正确,无法解除绑定';
+			}else{
+				$db->update('admin',['otp_secret'=>'','otp_enabled'=>0],['id'=>$_SESSION['admin_id']]);
+				header('Location: seting.php?msg=otp_off');
+				exit();
+			}
+		}
+	}
+}
+
+//存储信息
+$db_file=ROOT.ltrim($config['db']['database_file'],'/');
+$storage=[
+	'db_file'=>(is_file($db_file)?$db_file:'尚未创建'),
+	'db_size'=>is_file($db_file)?format_size(filesize($db_file)):'0',
+	'archive_dir'=>DATA_DIR.'archive',
+	'archive_count'=>0,
+	'archive_size'=>0,
+];
+if (is_dir($storage['archive_dir'])) {
+	foreach (glob($storage['archive_dir'].'/*.csv.gz') as $af) {
+		$storage['archive_count']++;
+		$storage['archive_size']+=filesize($af);
+	}
+}
+$storage['archive_size_txt']=format_size($storage['archive_size']);
+
 $msg=isset($_GET['msg'])?$_GET['msg']:'';
-$messages=['site'=>'网站设置已保存','db'=>'数据库设置已保存','password'=>'密码修改成功'];
+$messages=[
+	'site'=>'网站设置已保存',
+	'policy'=>'保留策略已保存',
+	'skin'=>'外观设置已保存',
+	'password'=>'密码修改成功',
+	'otp_on'=>'两步验证已开启',
+	'otp_off'=>'两步验证已关闭',
+];
 
 $smarty = admin_smarty();
 $smarty->assign('title',$config['web']['title']);
@@ -145,4 +199,12 @@ $smarty->assign('config',$config);
 $smarty->assign('csrf',csrf_token());
 $smarty->assign('save_error',$save_error);
 $smarty->assign('save_ok',isset($messages[$msg])?$messages[$msg]:'');
+$smarty->assign('otp_enabled',(int)admin_get_otp_enabled());
+$smarty->assign('otp_setup',$otp_setup);
+$smarty->assign('otp_error',$otp_error);
+if ($otp_setup!=='') {
+	require_once SYSTEM_ROOT.'totp.php';
+	$smarty->assign('otp_uri',totp_uri($otp_setup,$_SESSION['admin_user'],$config['web']['title']));
+}
+$smarty->assign('storage',$storage);
 $smarty->display('tpl_seting.php');

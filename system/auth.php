@@ -43,10 +43,10 @@ function admin_require_login(){
 }
 
 /**
- * 登录校验,带简单的会话级限速:连续失败5次锁定10分钟
+ * 登录第一步:校验账号密码,带简单的会话级限速:连续失败5次锁定10分钟
  * @param  string $username
  * @param  string $password
- * @return bool
+ * @return string ok=登录成功 otp=需要两步验证 bad=账号或密码错误/被锁定
  */
 function admin_login($username,$password){
 	$username=(string)$username;
@@ -55,27 +55,108 @@ function admin_login($username,$password){
 	$fails=isset($_SESSION['login_fails'])?$_SESSION['login_fails']:0;
 	$lock_until=isset($_SESSION['login_lock_until'])?$_SESSION['login_lock_until']:0;
 	if ($fails>=5 && $now<$lock_until) {
-		return false;
+		return 'bad';
 	}
 	if ($fails>=5) {
 		$_SESSION['login_fails']=0;
 	}
-	$row=$GLOBALS['db']->get('admin',['id','username','password_hash'],['username'=>$username]);
+	$row=$GLOBALS['db']->get('admin',['id','username','password_hash','otp_enabled'],['username'=>$username]);
 	if (empty($row) || !password_verify((string)$password,$row['password_hash'])) {
 		$_SESSION['login_fails']=$fails+1;
 		if ($_SESSION['login_fails']>=5) {
 			$_SESSION['login_lock_until']=$now+600;
 		}
-		return false;
+		return 'bad';
 	}
-	//登录成功,重置限速并更换会话ID防会话固定
+	//账号密码通过,重置限速
 	$_SESSION['login_fails']=0;
 	unset($_SESSION['login_lock_until']);
+	if (!empty($row['otp_enabled'])) {
+		//需要第二步验证,暂不建立完整登录态
+		session_regenerate_id(true);
+		$_SESSION['otp_pending']=['id'=>(int)$row['id'],'user'=>$row['username'],'time'=>time()];
+		return 'otp';
+	}
+	admin_finish_login($row);
+	return 'ok';
+}
+
+/**
+ * 登录第二步:校验验证器验证码,完成登录
+ * @param  string $code 6位TOTP验证码
+ * @return bool
+ */
+function admin_verify_otp($code){
+	if (empty($_SESSION['otp_pending'])) {
+		return false;
+	}
+	$pending=$_SESSION['otp_pending'];
+	if (time()-$pending['time']>300) {
+		//两步验证超时,回到第一步
+		unset($_SESSION['otp_pending']);
+		return false;
+	}
+	require_once SYSTEM_ROOT.'totp.php';
+	$secret=admin_get_otp_secret_by_id($pending['id']);
+	if ($secret==='' || !totp_verify($secret,$code)) {
+		return false;
+	}
+	$row=$GLOBALS['db']->get('admin',['id','username'],['id'=>$pending['id']]);
+	if (empty($row)) {
+		unset($_SESSION['otp_pending']);
+		return false;
+	}
+	unset($_SESSION['otp_pending']);
+	admin_finish_login($row);
+	return true;
+}
+
+/**
+ * 建立完整登录态(账号密码+验证码都通过后调用)
+ * @param array $row admin表行
+ */
+function admin_finish_login($row){
 	session_regenerate_id(true);
 	$_SESSION['admin_id']=(int)$row['id'];
 	$_SESSION['admin_user']=$row['username'];
 	$GLOBALS['db']->update('admin',['last_login'=>date('Y-m-d H:i:s')],['id'=>$row['id']]);
-	return true;
+}
+
+/**
+ * 当前登录管理员已绑定的TOTP密钥(解密)
+ * @return string 未绑定时返回空串
+ */
+function admin_get_otp_secret(){
+	if (empty($_SESSION['admin_id'])) {
+		return '';
+	}
+	return admin_get_otp_secret_by_id($_SESSION['admin_id']);
+}
+
+/**
+ * 按id取TOTP密钥(解密)
+ * @param  int $id
+ * @return string
+ */
+function admin_get_otp_secret_by_id($id){
+	$row=$GLOBALS['db']->get('admin',['otp_secret','otp_enabled'],['id'=>(int)$id]);
+	if (empty($row) || empty($row['otp_enabled']) || $row['otp_secret']==='') {
+		return '';
+	}
+	$secret=encdec_openssl($row['otp_secret'],'de');
+	return is_string($secret)?$secret:'';
+}
+
+/**
+ * 当前管理员是否开启两步验证
+ * @return int
+ */
+function admin_get_otp_enabled(){
+	if (empty($_SESSION['admin_id'])) {
+		return 0;
+	}
+	$row=$GLOBALS['db']->get('admin',['otp_enabled'],['id'=>$_SESSION['admin_id']]);
+	return empty($row)?0:(int)$row['otp_enabled'];
 }
 
 /**

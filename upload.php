@@ -132,6 +132,15 @@ if (!$insert_ok || $db->error()[1]) {
 	}
 }
 
+//每日上传统计+1(活跃日历数据源,独立于保留策略长期保存;失败不影响上传)
+try {
+	$st=$db->pdo->prepare("INSERT INTO stats_daily (date, count) VALUES (?, 1)
+		ON CONFLICT(date) DO UPDATE SET count = count + 1");
+	$st->execute([date('Y-m-d')]);
+} catch (Exception $e) {
+	//统计失败可忽略
+}
+
 json_exit(['code'=>'success','data'=>[
 	'url'=>$config['web']['cdn'].$db_path,
 	'md5'=>$file_md5,
