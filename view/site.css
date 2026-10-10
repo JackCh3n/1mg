@@ -542,3 +542,8 @@ body.drag-hint::after {
 
 /* fileinput 缩放按钮兜底隐藏(缩放预览依赖Bootstrap modal,已禁用) */
 .kv-file-zoom { display: none !important; }
+
+/* fileinput 按钮排序: Browse按钮最左,Upload按钮最右 */
+.file-input .input-group .input-group-btn { display: flex; width: 100%; gap: 10px; }
+.file-input .input-group .btn-file { order: -1; }
+.file-input .input-group .fileinput-upload { margin-left: auto; }

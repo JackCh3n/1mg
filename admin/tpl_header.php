@@ -53,6 +53,10 @@
             {assign var="_titles" value=['index'=>'仪表盘','moderation'=>'内容审核','logs'=>'上传日志','audit'=>'操作日志','images'=>'图片管理','seting'=>'网站设置']}
             <h1 class="page-title">{if isset($_titles[$nav_active])}{$_titles[$nav_active]}{/if}</h1>
             <div class="topbar-right">
+                <a href="../" target="_blank" rel="noopener" title="打开前台首页" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13.5px;padding:6px 10px;border-radius:8px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+                    返回首页
+                </a>
                 <span class="who">{$admin_user|escape}</span>
                 <button type="button" class="theme-toggle" data-mg-theme-toggle title="切换明暗皮肤">
                     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>

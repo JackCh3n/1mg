@@ -43,9 +43,10 @@ if (!empty($file['error'])) {
 	json_exit(['code'=>110,'error'=>isset($errors[$file['error']])?$errors[$file['error']]:'文件上传失败(error '.$file['error'].')']);
 }
 
-//大小限制5M
-if ($file['size'] > 5242880) {
-	json_exit(['code'=>110,'error'=>'对不起,上传的文件大于5M']);
+//大小限制(后台可配,默认5M)
+$max_bytes=((int)$config['web']['max_size_mb'])*1048576;
+if ($file['size'] > $max_bytes) {
+	json_exit(['code'=>110,'error'=>'对不起,上传的文件大于'.$config['web']['max_size_mb'].'M']);
 }
 
 //扩展名白名单(统一转小写再比对,原来的写法 .JPG 会被拒)

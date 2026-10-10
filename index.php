@@ -58,12 +58,14 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
         <section id="sec-upload">
             <div class="hero">
                 <h1>简单 · <em>免费</em> · 好用的图床</h1>
-                <p>拖拽上传 · 自动压缩 · 相同文件秒传 · 单张 5MB,一次最多 10 张</p>
+                <p>拖拽上传 · 自动压缩 · 相同文件秒传 · 单张 <?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>MB,一次最多 <?php echo (int)($config['web']['max_files'] ?? 10); ?> 张</p>
             </div>
             <div class="card upload-card">
                 <input id="file" type="file" multiple class="file"
                     data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="10" name="file" accept="image/*"
-                    data-api-token="<?php echo htmlspecialchars($config['web']['api_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                    data-api-token="<?php echo htmlspecialchars($config['web']['api_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                    data-max-size="<?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>"
+                    data-max-count="<?php echo (int)($config['web']['max_files'] ?? 10); ?>">
             </div>
             <div class="card" id="showurl" style="display:none">
                 <div class="tabs" id="result-tabs">
@@ -102,7 +104,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
             <div class="card">
                 <h3 style="margin-top:0">图片限制</h3>
                 <ul style="margin:0">
-                    <li>单张不超过 <b>5MB</b>,一次最多 <b>10 张</b></li>
+                    <li>单张不超过 <b><?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>MB</b>,一次最多 <b><?php echo (int)($config['web']['max_files'] ?? 10); ?> 张</b></li>
                     <li>支持格式:<b>jpg / png / gif / bmp / webp</b>(gif 动图保持原样,其余自动压缩并转存为更小的 WebP)</li>
                     <li>超大图片会自动等比缩放(最长边 2560px),手机竖拍照片会按 EXIF 自动转正</li>
                     <li>为防滥用,每 IP 每小时有上传次数限制(默认 60 次,超限会提示稍后再试)</li>

@@ -31,6 +31,9 @@ $(function () {
 
     //API令牌(后台开启接口鉴权时随上传/预检携带)
     var API_TOKEN = $('#file').attr('data-api-token') || '';
+    //后台可配的上传限制
+    var MAX_SIZE = parseInt($('#file').attr('data-max-size'), 10) || 5;
+    var MAX_COUNT = parseInt($('#file').attr('data-max-count'), 10) || 10;
 
     /* ---------- 分块计算md5(秒传预检),SparkMD5加载失败时自动跳过 ---------- */
     function computeFileMd5(file, callback) {
@@ -61,9 +64,9 @@ $(function () {
         uploadExtraData: function () { return { api_token: API_TOKEN }; },
         allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
         overwriteInitial: false,
-        maxFileSize: 5120,
-        maxFilesNum: 10,
-        maxFileCount: 10,
+        maxFileSize: MAX_SIZE * 1024,
+        maxFilesNum: MAX_COUNT,
+        maxFileCount: MAX_COUNT,
         showCaption: false,
         autoOrientImage: false,
         showZoom: false,
@@ -199,7 +202,7 @@ $(function () {
                 uploadUrl: 'upload.php',
                 uploadExtraData: function () { return { api_token: API_TOKEN }; },
                 allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
-                maxFileSize: 5120,
+                maxFileSize: MAX_SIZE * 1024,
                 showCaption: false,
         autoOrientImage: false,
                 showZoom: false,

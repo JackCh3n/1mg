@@ -5,15 +5,18 @@ $(function () {
     //无Bootstrap环境:fileinput的缩放预览依赖$.fn.modal,给空实现防止崩溃(缩放功能已禁用)
     if (!$.fn.modal) { $.fn.modal = function () { return this; }; }
     var csrf = $('#recent-box').attr('data-csrf');
+    //后台可配的上传限制
+    var MAX_SIZE = parseInt($('#file').attr('data-max-size'), 10) || 5;
+    var MAX_COUNT = parseInt($('#file').attr('data-max-count'), 10) || 10;
 
     //上传控件
     $("#file").fileinput({
         uploadUrl: '../upload.php',
-        allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp'],
+        allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
         overwriteInitial: false,
-        maxFileSize: 5120,
-        maxFilesNum: 10,
-        maxFileCount: 10,
+        maxFileSize: MAX_SIZE * 1024,
+        maxFilesNum: MAX_COUNT,
+        maxFileCount: MAX_COUNT,
         showBrowse: true,
         browseLabel: '选择或拖拽图片',
         showRemove: true,

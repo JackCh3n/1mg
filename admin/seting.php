@@ -30,6 +30,8 @@ if (!empty($_POST)) {
 			$key=trim(strip_tags((string)$_POST['key']));
 			$pass=trim(strip_tags((string)$_POST['pass']));
 			$rate_hour=(int)$_POST['rate_hour'];
+			$max_size_mb=(int)$_POST['max_size_mb'];
+			$max_files=(int)$_POST['max_files'];
 			$webp=isset($_POST['webp_enabled'])?1:0;
 			$api_token=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['api_token']);
 			foreach ([[$title,'网站标题',1,50],[$key,'图片鉴黄Key',0,64],[$pass,'图片鉴黄口令',0,64]] as $v) {
@@ -40,6 +42,12 @@ if (!empty($_POST)) {
 			}
 			if ($save_error==='' && ($rate_hour<0 || $rate_hour>10000)) {
 				$save_error='每小时上传上限需在0-10000之间(0=不限制)';
+			}
+			if ($save_error==='' && ($max_size_mb<1 || $max_size_mb>50)) {
+				$save_error='单张大小上限需在1-50MB之间';
+			}
+			if ($save_error==='' && ($max_files<1 || $max_files>100)) {
+				$save_error='单次上传张数需在1-100之间';
 			}
 			if ($save_error==='' && mb_strlen($api_token)>64) {
 				$save_error='接口令牌过长';
@@ -63,6 +71,8 @@ if (!empty($_POST)) {
 					'img_level_key'=>$key,
 					'img_level_pass'=>$pass,
 					'rate_hour'=>$rate_hour,
+					'max_size_mb'=>$max_size_mb,
+					'max_files'=>$max_files,
 					'webp_enabled'=>$webp,
 					'api_token'=>$api_token,
 				]])) {

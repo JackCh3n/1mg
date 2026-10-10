@@ -88,7 +88,7 @@ JSON 路径:  data.url
         <div class="card">
             <h2 style="margin-top:0">4. 使用约定</h2>
             <ul>
-                <li>仅允许上传图片,单张 ≤5MB;每 IP 每小时有上传次数限制</li>
+                <li>仅允许上传图片,单张 ≤<?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>MB,一次 ≤<?php echo (int)($config['web']['max_files'] ?? 10); ?> 张;每 IP 每小时有上传次数限制</li>
                 <li>相同内容的文件自动去重(秒传),不会重复占用空间</li>
                 <li>严禁上传违法图片,站方可随时通过删除链接或后台移除</li>
             </ul>

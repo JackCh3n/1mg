@@ -21,6 +21,16 @@
                     <span class="text-muted" style="font-size:13px;align-self:center">次/小时/IP(0=不限制,含失败尝试)</span>
                 </div>
                 <div class="form-row">
+                    <label>单张上限</label>
+                    <input type="number" class="form-control" name="max_size_mb" min="1" max="50" value="{$config['web']['max_size_mb']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">MB(1-50,注意不超过服务器 upload_max_filesize)</span>
+                </div>
+                <div class="form-row">
+                    <label>单次张数</label>
+                    <input type="number" class="form-control" name="max_files" min="1" max="100" value="{$config['web']['max_files']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">一次最多上传的张数(1-100)</span>
+                </div>
+                <div class="form-row">
                     <label>WebP 转存</label>
                     <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text)">
                         <input type="checkbox" name="webp_enabled" value="1"{if $config['web']['webp_enabled']} checked{/if} style="width:17px;height:17px">

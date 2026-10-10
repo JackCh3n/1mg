@@ -37,6 +37,8 @@ $config=[
 		'retention_archive'=>180,//归档压缩包保留天数
 		//上传与接口
 		'rate_hour'=>60,         //每IP每小时上传上限(0=不限制)
+		'max_size_mb'=>5,        //单张图片上限(MB)
+		'max_files'=>10,         //单次最多上传张数
 		'webp_enabled'=>1,       //上传时转存WebP(更小,兼容性2026年已普及)
 		'api_token'=>'',         //非空时上传/预检接口要求携带此令牌(空=开放)
 	]
