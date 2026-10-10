@@ -62,6 +62,48 @@
     </div>
 
     <div class="acard">
+        <div class="acard-head">鉴黄 Key 池 <span class="sub">接口 moderatecontent.com · 每Key每月 2500 次 · 多Key自动轮询,超额/停用/无效自动跳过 · 用量月初自动清零</span></div>
+        <div class="acard-body">
+            <table class="table">
+                <thead>
+                    <tr><th>Key</th><th>当月可用次数</th><th>状态</th><th>启用</th><th style="width:70px">操作</th></tr>
+                </thead>
+                <tbody>
+                    {foreach $mod_keys as $k}
+                    <tr>
+                        <td style="font-family:var(--mono);font-size:12.5px;word-break:break-all">{$k['key']|escape}</td>
+                        <td>{($k['used_month']==date('Y-m')) ? $mod_limit - (int)$k['used_count'] : $mod_limit} / {$mod_limit}</td>
+                        <td>{if $k['status']=='invalid'}<span class="label label-danger">无效</span>{else}<span class="label label-success">正常</span>{/if}</td>
+                        <td>
+                            <form method="post" action="moderation.php?type=key_toggle" style="display:inline">
+                                <input type="hidden" name="_csrf" value="{$csrf}">
+                                <input type="hidden" name="id" value="{$k['id']}">
+                                <button type="submit" class="btn btn-xs {if $k['enabled']}btn-success{else}btn-default{/if}">{if $k['enabled']}已启用{else}已停用{/if}</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form method="post" action="moderation.php?type=key_del" style="display:inline" onsubmit="return confirm('删除该Key?')">
+                                <input type="hidden" name="_csrf" value="{$csrf}">
+                                <input type="hidden" name="id" value="{$k['id']}">
+                                <button type="submit" class="btn btn-xs btn-danger">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {/foreach}
+                    {if count($mod_keys)==0}
+                    <tr><td colspan="5" class="empty-tip">还没有Key,在下方添加</td></tr>
+                    {/if}
+                </tbody>
+            </table>
+            <form method="post" action="moderation.php?type=key_add" class="inline-form" style="margin-top:12px">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="text" class="form-control" name="key" placeholder="粘贴新的鉴黄 Key" required style="max-width:320px">
+                <button type="submit" class="btn btn-primary btn-sm">添加 Key</button>
+            </form>
+            <p class="help-block">设置页上方的「鉴黄 Key」为初始 Key(自动收录进表格);「测试可用性」按钮同样可用。</p>
+        </div>
+    </div>
+    <div class="acard">
         <div class="acard-head">数据保留策略 <span class="sub">在线 → 归档 → 清理,三级保留</span></div>
         <div class="acard-body">
             <form action="seting.php" method="post">

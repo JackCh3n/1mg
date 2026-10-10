@@ -47,6 +47,39 @@ if (isset($_GET['type']) && $_GET['type']==='testkey' && $_SERVER['REQUEST_METHO
 }
 
 $msg='';
+//鉴黄Key池管理(增/启停/删),从设置页提交后回跳
+if (isset($_GET['type']) && isset($_POST['_csrf']) && $_SERVER['REQUEST_METHOD']==='POST') {
+	$t=$_GET['type'];
+	if (!csrf_verify($_POST['_csrf'])) {
+		header('Location: ../admin/seting.php');
+		exit();
+	}
+	require_once SYSTEM_ROOT.'moderate.php';
+	if ($t==='key_add') {
+		$k=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['key']);
+		if (strlen($k)>=16) {
+			try {
+				$db->insert('mod_keys',['key'=>$k,'enabled'=>1,'status'=>'ok','used_month'=>date('Y-m'),'used_count'=>0]);
+				admin_log('modkey_add',substr($k,0,8).'…');
+			} catch (Exception $e) { /*重复Key忽略*/ }
+		}
+	}elseif ($t==='key_toggle') {
+		$id=(int)$_POST['id'];
+		$row=$db->get('mod_keys',['id','enabled'],['id'=>$id]);
+		if ($row) {
+			$db->update('mod_keys',['enabled'=>$row['enabled']?0:1],['id'=>$id]);
+			admin_log('modkey_toggle','id='.$id.',enabled='.($row['enabled']?0:1));
+		}
+	}elseif ($t==='key_del') {
+		$id=(int)$_POST['id'];
+		$row=$db->get('mod_keys',['key'],['id'=>$id]);
+		$db->delete('mod_keys',['id'=>$id]);
+		admin_log('modkey_del',$row?substr($row['key'],0,8).'…':'id='.$id);
+	}
+	header('Location: seting.php');
+	exit();
+}
+
 //人工审核操作
 if (!empty($_POST['do']) && !empty($_POST['key'])) {
 	if (csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {

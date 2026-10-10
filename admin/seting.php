@@ -215,6 +215,8 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 }
 
 //存储信息
+require_once SYSTEM_ROOT.'moderate.php';
+$mod_keys=mod_keys_all();
 $db_file=ROOT.ltrim($config['db']['database_file'],'/');
 $storage=[
 	'db_file'=>(is_file($db_file)?$db_file:'尚未创建'),
@@ -257,4 +259,6 @@ if ($otp_setup!=='') {
 	$smarty->assign('otp_uri',totp_uri($otp_setup,$_SESSION['admin_user'],$config['web']['title']));
 }
 $smarty->assign('storage',$storage);
+$smarty->assign('mod_keys',$mod_keys);
+$smarty->assign('mod_limit',MOD_MONTHLY_LIMIT);
 $smarty->display('tpl_seting.php');

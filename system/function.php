@@ -247,6 +247,15 @@ function db_init_sqlite($db){
 		ip TEXT DEFAULT '',
 		date TEXT DEFAULT ''
 	)");
+	//鉴黄Key池(moderatecontent,多Key轮询+当月用量统计)
+	$pdo->exec("CREATE TABLE IF NOT EXISTS mod_keys (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		key TEXT UNIQUE,
+		enabled INTEGER DEFAULT 1,
+		status TEXT DEFAULT 'ok',
+		used_month TEXT DEFAULT '',
+		used_count INTEGER DEFAULT 0
+	)");
 	//首次运行播种默认管理员 admin / admin123456
 	$has_admin=$pdo->query("SELECT COUNT(*) FROM admin")->fetchColumn();
 	if (!$has_admin) {
