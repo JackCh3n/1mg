@@ -13,6 +13,12 @@ $(function () {
     $("#file").fileinput({
         uploadUrl: '../upload.php',
         allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
+        browseLabel: '选择图片',
+        removeLabel: '清除',
+        uploadLabel: '开始上传',
+        cancelLabel: '取消',
+        dropZoneTitle: '把图片拖拽到这里,或点击选择',
+        dropZoneClickTitle: '',
         overwriteInitial: false,
         maxFileSize: MAX_SIZE * 1024,
         maxFilesNum: MAX_COUNT,

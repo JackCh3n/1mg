@@ -94,7 +94,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
             <div class="card">
                 <h3 style="margin-top:0">怎么上传图片?</h3>
                 <ul style="margin:0">
-                    <li><b>点击上传</b>:点击绿色「Browse」按钮选择图片,再点 Upload 开始上传</li>
+                    <li><b>点击上传</b>:点击绿色「选择图片」按钮选择图片,再点「开始上传」开始上传</li>
                     <li><b>拖拽上传</b>:把图片直接拖到本页面的任意位置,松手即传</li>
                     <li><b>粘贴上传</b>:截图后在页面任意位置按 <code>Ctrl + V</code> 直接上传</li>
                     <li>上传完成后,下方会自动生成 <b>URL / HTML / BBCode / Markdown / 删除链接</b> 五种格式,点击对应标签切换复制</li>
