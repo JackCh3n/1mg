@@ -167,10 +167,29 @@ $(function () {
         $('#nav-links a').removeClass('active');
         $('#nav-links a[data-nav="' + nav + '"]').addClass('active');
     }
+    function backBtn() {
+        return '<p style="margin-top:16px"><button type="button" class="btn btn-sm" id="back-upload">返回上传</button></p>';
+    }
+    function bindBack() {
+        $('#back-upload').click(function () { location.hash = ''; location.reload(); });
+    }
+    //复制链接按钮(事件委托,动态内容也可用)
+    $(document).on('click', '.copy-url', function () {
+        var btn = this, url = this.getAttribute('data-url');
+        function done() {
+            btn.textContent = '已复制 ✓';
+            setTimeout(function () { btn.textContent = '复制链接'; }, 1500);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done, function () { prompt('复制链接:', url); });
+        } else {
+            prompt('复制链接:', url);
+        }
+    });
 
     $('#today').click(function () {
         switchTo('today');
-        $('#qita').show().html('<h2>今日上传</h2><p>加载中…</p>');
+        $('#qita').show().html('<div class="card"><h2 style="margin:0 0 12px">今日上传</h2><p class="text-muted">加载中…</p></div>');
         $('#sec-upload').hide();
         $.getJSON('user/today.php', function (data) {
             $("#file").fileinput('destroy').fileinput($.extend({
@@ -183,13 +202,25 @@ $(function () {
                 showCancel: false,
                 fileActionSettings: { showZoom: false, showDrag: false }
             }, data));
-            var html = '<h2>今日上传</h2><p>今天已有 ' + data.initialPreview.length + ' 张图片,点击复制链接:</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">';
-            $.each(data.initialPreview, function (i, url) {
-                html += '<a href="' + url + '" target="_blank"><img src="' + url + '" style="width:100%;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--border)" loading="lazy"></a>';
-            });
-            html += '</div><p style="margin-top:14px"><button type="button" class="btn btn-sm" id="back-upload">返回上传</button></p>';
+            var n = (data.initialPreview || []).length;
+            var html = '<div class="card"><h2 style="margin:0 0 12px">今日上传</h2>';
+            if (!n) {
+                html += '<p class="text-muted" style="margin:18px 0">今天还没有图片,上传第一张吧。</p>' + backBtn();
+            } else {
+                html += '<p class="text-muted" style="margin:0 0 14px">今天已有 <b>' + n + '</b> 张图片,点击图片在新窗口查看,或直接复制链接:</p>';
+                html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px">';
+                $.each(data.initialPreview, function (i, url) {
+                    var name = (data.initialPreviewConfig[i] && data.initialPreviewConfig[i].caption) || ('image-' + (i + 1));
+                    html += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel-2)">'
+                        + '<a href="' + url + '" target="_blank"><img src="' + url + '" style="width:100%;height:110px;object-fit:cover;display:block" loading="lazy" alt=""></a>'
+                        + '<div style="padding:7px 9px"><button type="button" class="btn btn-xs copy-url" data-url="' + url + '" style="width:100%">复制链接</button></div>'
+                        + '</div>';
+                });
+                html += '</div>' + backBtn();
+            }
+            html += '</div>';
             $('#qita').html(html);
-            $('#back-upload').click(function () { location.hash = ''; location.reload(); });
+            bindBack();
         });
         return false;
     });
@@ -198,14 +229,15 @@ $(function () {
         switchTo('about');
         $('#sec-upload').hide();
         $('#qita').show().html(
-            '<h1>关于 1mg 图床</h1><p>在法律允许范围内,请随意使用本图床。</p>' +
+            '<div class="card"><h1 style="margin:0 0 14px">关于 1mg 图床</h1>' +
+            '<p>在法律允许范围内,请随意使用本图床。</p>' +
             '<h3>严禁上传及分享如下类型的图片:</h3><ul>' +
             '<li>含有色情、暴力、宣扬恐怖主义的图片</li>' +
             '<li>侵犯版权、未经授权的图片</li>' +
             '<li>其他违反中华人民共和国法律的图片</li></ul>' +
-            '<p><button type="button" class="btn btn-sm" id="back-upload">返回上传</button></p>'
+            backBtn() + '</div>'
         );
-        $('#back-upload').click(function () { location.hash = ''; location.reload(); });
+        bindBack();
         return false;
     });
 
@@ -213,10 +245,11 @@ $(function () {
         switchTo('contact');
         $('#sec-upload').hide();
         $('#qita').show().html(
-            '<h1>联系我们</h1><div class="callout"><p>如果是讨论技术问题或者报告 bug,请到 <a href="https://github.com/lenyuadmin/1mg/issues" target="_blank" rel="noopener">GitHub Issues</a> 提交,以免问题石沉大海。</p></div>' +
-            '<p><button type="button" class="btn btn-sm" id="back-upload">返回上传</button></p>'
+            '<div class="card"><h1 style="margin:0 0 14px">联系我们</h1>' +
+            '<div class="callout"><p style="margin:0">如果是讨论技术问题或者报告 bug,请到 <a href="https://github.com/lenyuadmin/1mg/issues" target="_blank" rel="noopener">GitHub Issues</a> 提交,以免问题石沉大海。</p></div>' +
+            backBtn() + '</div>'
         );
-        $('#back-upload').click(function () { location.hash = ''; location.reload(); });
+        bindBack();
         return false;
     });
 
@@ -224,7 +257,7 @@ $(function () {
         switchTo('tos');
         $('#sec-upload').hide();
         $('#qita').show().html(
-            '<h1>服务条款 Terms of Service</h1><ul>' +
+            '<div class="card"><h1 style="margin:0 0 14px">服务条款 Terms of Service</h1><ul>' +
             '<li>在不违反当地法律法规的情况下,请随意使用本图床服务.</li>' +
             '<li>侵权的图片, 包括侵犯个人私隐、企业版权等;</li>' +
             '<li>含有成人內容/擦边/偷拍/过分裸露情节的图片;</li>' +
@@ -237,9 +270,9 @@ $(function () {
             '<li>违反中华人民共和国法律法规的图片;</li>' +
             '<li>管理员有权删除我们认为不合适的图片.</li>' +
             '<li>我们会保留随时变更或修改服务条款部份或全部內容的权利.</li></ul>' +
-            '<p><button type="button" class="btn btn-sm" id="back-upload">返回上传</button></p>'
+            backBtn() + '</div>'
         );
-        $('#back-upload').click(function () { location.hash = ''; location.reload(); });
+        bindBack();
         return false;
     });
 });
