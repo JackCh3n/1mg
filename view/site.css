@@ -379,10 +379,21 @@ textarea.form-control { resize: vertical; }
 .file-zoom-dialog,
 .modal-backdrop { display: none !important; }
 
-/* 按钮行显示在拖拽区上方 */
-.file-input { display: flex; flex-direction: column; }
-.file-input .file-preview { order: 2; }
-.file-input .input-group { order: 1; }
+/* 按钮行显示在拖拽区上方(grid: 第一行预览/进度整行,第二行 Browse占宽+按钮,Upload固定最右列) */
+.file-input {
+	display: grid;
+	grid-template-columns: 1fr auto auto auto;
+	gap: 10px;
+	align-items: center;
+}
+/*默认:其余子元素(预览/进度/错误提示等)整行排列*/
+.file-input > * { grid-column: 1 / -1; }
+/*按钮固定在第一行四列: Browse最左(占宽列), Upload最右*/
+.file-input > .btn { width: auto; }
+.file-input > .btn-file { grid-area: 1 / 1 / 2 / 2; }
+.file-input > .fileinput-remove-button { grid-area: 1 / 2 / 2 / 3; }
+.file-input > .fileinput-cancel-button { grid-area: 1 / 3 / 2 / 4; }
+.file-input > .fileinput-upload-button { grid-area: 1 / 4 / 2 / 5; }
 
 /* 原生file input隐藏(经典btn-file技巧,避免浏览器自带的"选择文件"字样露出) */
 .btn-file { position: relative; overflow: hidden; }
@@ -543,7 +554,18 @@ body.drag-hint::after {
 /* fileinput 缩放按钮兜底隐藏(缩放预览依赖Bootstrap modal,已禁用) */
 .kv-file-zoom { display: none !important; }
 
-/* fileinput 按钮排序: Browse按钮最左,Upload按钮最右 */
-.file-input .input-group .input-group-btn { display: flex; width: 100%; gap: 10px; }
-.file-input .input-group .btn-file { order: -1; }
-.file-input .input-group .fileinput-upload { margin-left: auto; }
+/* fileinput 按钮排序: Browse按钮最左,Upload按钮最右(input-group-btn保持display:contents让按钮直接参与横排) */
+
+/* fileinput 状态与文本微调(无Bootstrap环境补齐) */
+.kv-hidden { display: none !important; }
+.file-input .progress { height: 6px; }
+.file-input .progress-bar { font-size: 0; }
+.file-caption-info {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.file-footer-caption {
+	max-width: 100% !important;
+}

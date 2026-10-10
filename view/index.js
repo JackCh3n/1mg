@@ -165,6 +165,16 @@ $(function () {
                         appendUrl(res.data.url, fname);
                         appendDelete(res.data.delete);
                         $('#' + previewId).find('.kv-file-remove').click();
+                        //秒传成功:收起进度条,把红色中止告警转成绿色成功提示
+                        $('.file-input .kv-upload-progress').hide();
+                        setTimeout(function () {
+                            $('.file-input .alert-danger').each(function () {
+                                if (this.textContent.indexOf('已存在,秒传成功') > -1) {
+                                    this.classList.remove('alert-danger');
+                                    this.classList.add('alert-success');
+                                }
+                            });
+                        }, 0);
                     } else {
                         resume();
                     }
