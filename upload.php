@@ -11,11 +11,10 @@ require SYSTEM_ROOT.'image.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-//API令牌门(后台设置api_token非空时,上传/预检都必须携带)
-$api_token=isset($config['web']['api_token'])?trim((string)$config['web']['api_token']):'';
-if ($api_token!=='') {
+//API令牌门(配置了全局令牌或启用了DB令牌时,上传必须携带其中之一)
+if (api_token_required()) {
 	$given=isset($_POST['api_token'])?$_POST['api_token']:(isset($_GET['api_token'])?$_GET['api_token']:(isset($_SERVER['HTTP_X_API_TOKEN'])?$_SERVER['HTTP_X_API_TOKEN']:''));
-	if (!is_string($given) || !hash_equals($api_token,$given)) {
+	if (!is_string($given) || api_token_check($given)===false) {
 		json_exit(['code'=>401,'error'=>'API token 无效']);
 	}
 }
@@ -80,6 +79,15 @@ $file_md5=md5_file($file['tmp_name']);
 //i/2610/09 目录一律用 / 分隔,保证图片URL在各平台下都正确
 $file_path='i/'.date('ym').'/'.date('d');
 
+//用户配额检查(登录用户;秒传不消耗配额)
+$uid=empty($_SESSION['user_id'])?0:(int)$_SESSION['user_id'];
+if ($uid) {
+	$quota_err=user_quota_check($uid, (int)$file['size']);
+	if ($quota_err!=='') {
+		json_exit(['code'=>110,'error'=>$quota_err]);
+	}
+}
+
 //秒传:同一文件已存在且未被删除,直接返回已有地址
 $db_md5=$db->get('imginfo',['id','path','see','delete_token'],['md5'=>$file_md5]);
 if (!empty($db_md5)) {
@@ -136,7 +144,7 @@ try {
 		'level'=>0,
 		'see'=>1,
 		'delete_token'=>$delete_token,
-		'user_id'=>empty($_SESSION['user_id'])?0:(int)$_SESSION['user_id'],
+		'user_id'=>$uid,
 	]);
 } catch (Exception $e) {
 	$insert_ok=false;

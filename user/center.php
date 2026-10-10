@@ -80,7 +80,7 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 <div class="container">
 	<div class="hero" style="padding:34px 0 10px">
 		<h1>我的图片</h1>
-		<p>共 <?php echo $my_count; ?> 张 · 占用 <?php echo format_size($my_size); ?> · 仅显示在线保留期内(<?php echo (int)$config['web']['retention_online']; ?>天)的记录</p>
+		<p>共 <?php echo $my_count; ?> 张 · 占用 <?php echo format_size($my_size); ?><?php $qm=(int)($config['web']['user_quota_mb'] ?? 0); if ($qm>0) { $pct=min(100, round($my_size/($qm*1048576)*100)); echo ' / 配额 '.$qm.'MB('.$pct.'%)'; } ?><?php $qd=(int)($config['web']['user_daily_files'] ?? 0); if ($qd>0) { echo ' · 今日 '.$db->count('imginfo',['user_id'=>$_SESSION['user_id'],'date[~]'=>date('Y-m-d')]).'/'.$qd.' 张'; } ?> · 仅显示在线保留期内(<?php echo (int)$config['web']['retention_online']; ?>天)的记录</p>
 	</div>
 	<?php if ($e_msg): ?><div class="alert alert-success"><?php echo $e_msg; ?></div><?php endif; ?>
 
@@ -95,7 +95,7 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 				$e_name=htmlspecialchars($im['name'],ENT_QUOTES,'UTF-8');
 			?>
 			<div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:var(--panel-2)">
-				<a href="../<?php echo $e_path; ?>" target="_blank"><img src="../<?php echo $e_path; ?>" style="width:100%;height:120px;object-fit:cover;display:block" loading="lazy" alt=""></a>
+				<a href="../img.php?id=<?php echo (int)$im['id']; ?>"><img src="../<?php echo $e_path; ?>" style="width:100%;height:120px;object-fit:cover;display:block" loading="lazy" alt=""></a>
 				<div style="padding:8px 10px">
 					<div class="text-muted" style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?php echo $e_name; ?>"><?php echo $e_name; ?></div>
 					<div class="text-muted" style="font-size:11px"><?php echo format_size((int)$im['size']); ?> · <?php echo htmlspecialchars($im['date'],ENT_QUOTES,'UTF-8'); ?></div>

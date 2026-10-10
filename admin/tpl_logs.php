@@ -4,7 +4,9 @@
         <div class="acard-head">筛选 <span class="sub">参数化查询,支持按 IP 检索</span></div>
         <div class="acard-body">
             <form method="get" action="logs.php" class="inline-form">
-                <input class="form-control" type="text" name="ip" value="{$data['search_ip']|escape}" placeholder="按 IP 搜索,例: 127.0.0.1" style="max-width:260px">
+                <input class="form-control" type="text" name="ip" value="{$data['search_ip']|escape}" placeholder="按 IP 搜索" style="max-width:180px">
+                <input class="form-control" type="text" name="kw" value="{$data['search_kw']|escape}" placeholder="文件名包含" style="max-width:180px">
+                <input class="form-control" type="text" name="md5" value="{$data['search_md5']|escape}" placeholder="完整 MD5" style="max-width:240px">
                 <button type="submit" class="btn btn-primary btn-sm">查询</button>
                 <a href="logs.php" class="btn btn-sm">重置</a>
             </form>
@@ -17,12 +19,14 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th style="width:34px"><input type="checkbox" id="check-all" form="batch-form"></th>
                         <th>ID</th><th>时间</th><th>IP</th><th style="min-width:180px">UA</th><th>预览</th><th>大小</th><th>状态</th><th style="width:150px">操作</th>
                     </tr>
                 </thead>
                 <tbody>
                     {foreach $data['logs'] as $value}
                     <tr>
+                        <td><input type="checkbox" name="ids[]" value="{$value['id']}" form="batch-form"{if !$value['see']} disabled{/if}></td>
                         <td>{$value['id']}</td>
                         <td style="white-space:nowrap">{$value['date']|escape}</td>
                         <td>{$value['ip']|escape}</td>
@@ -51,10 +55,18 @@
                     </tr>
                     {/foreach}
                     {if count($data['logs'])==0}
-                    <tr><td colspan="8" class="empty-tip">没有记录</td></tr>
+                    <tr><td colspan="9" class="empty-tip">没有记录</td></tr>
                     {/if}
                 </tbody>
             </table>
+            <form method="post" action="logs.php" id="batch-form" onsubmit="return confirm('确认批量删除选中的图片?')">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="hidden" name="batch_del" value="1">
+                <input type="hidden" name="ip" value="{$data['search_ip']|escape}">
+                <p style="margin:12px 0 0"><button type="submit" class="btn btn-danger btn-sm">批量删除选中</button>
+                    <span class="text-muted" style="font-size:12.5px;margin-left:8px">删除的图片会进入回收站,可在「图片管理」页恢复</span></p>
+            </form>
+            {literal}<script>(function(){var a=document.getElementById('check-all');if(a)a.addEventListener('change',function(){document.querySelectorAll('input[name="ids[]"]:not([disabled])').forEach(function(c){c.checked=a.checked;});});})();</script>{/literal}
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px">
                 <span class="pager-info">共 {$data['count']} 条 · 第 {$data['page']} / {$data['total_pages']} 页</span>

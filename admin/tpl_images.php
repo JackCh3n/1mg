@@ -4,7 +4,7 @@
         <div class="acard-head">上传图片 <span class="sub">支持 jpg / png / gif / bmp · 自动压缩 · 秒传去重</span></div>
         <div class="acard-body">
             <form enctype="multipart/form-data">
-                <input id="file" type="file" multiple class="mg-upload" data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="{$config['web']['max_files']}" data-max-size="{$config['web']['max_size_mb']}" data-max-count="{$config['web']['max_files']}" name="file" accept="image/*">
+                <input id="file" type="file" multiple class="mg-upload" data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="{$config['web']['max_files']}" data-max-size="{$config['web']['max_size_mb']}" data-max-count="{$config['web']['max_files']}" data-api-token="{api_token_for_web()|escape}" name="file" accept="image/*">
             </form>
         </div>
     </div>

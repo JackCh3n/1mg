@@ -274,7 +274,7 @@ $(function () {
                 $.each(data.initialPreview, function (i, url) {
                     var name = (data.initialPreviewConfig[i] && data.initialPreviewConfig[i].caption) || ('image-' + (i + 1));
                     html += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--panel-2)">'
-                        + '<a href="' + url + '" target="_blank"><img src="' + url + '" style="width:100%;height:110px;object-fit:cover;display:block" loading="lazy" alt=""></a>'
+                        + '<a href="img.php?id=' + ((data.initialPreviewConfig[i] && data.initialPreviewConfig[i].key) || 0) + '"><img src="' + url + '" style="width:100%;height:110px;object-fit:cover;display:block" loading="lazy" alt=""></a>'
                         + '<div style="padding:7px 9px"><button type="button" class="btn btn-xs copy-url" data-url="' + url + '" style="width:100%">复制链接</button></div>'
                         + '</div>';
                 });

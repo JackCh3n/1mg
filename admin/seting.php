@@ -35,6 +35,8 @@ if (!empty($_POST)) {
 			$github_url=trim((string)$_POST['github_url']);
 			$show_github=isset($_POST['show_github'])?1:0;
 			$since_year=(int)$_POST['since_year'];
+			$user_quota_mb=(int)$_POST['user_quota_mb'];
+			$user_daily_files=(int)$_POST['user_daily_files'];
 			$webp=isset($_POST['webp_enabled'])?1:0;
 			$api_token=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['api_token']);
 			foreach ([[$title,'网站标题',1,50],[$key,'图片鉴黄Key',0,64],[$pass,'图片鉴黄口令',0,64]] as $v) {
@@ -57,6 +59,12 @@ if (!empty($_POST)) {
 			}
 			if ($save_error==='' && ($since_year<1970 || $since_year>(int)date('Y'))) {
 				$save_error='起始年份需在1970到当前年份之间';
+			}
+			if ($save_error==='' && ($user_quota_mb<0 || $user_quota_mb>1048576)) {
+				$save_error='用户存储配额需在0-1048576MB之间(0=不限)';
+			}
+			if ($save_error==='' && ($user_daily_files<0 || $user_daily_files>10000)) {
+				$save_error='用户每日张数需在0-10000之间(0=不限)';
 			}
 			if ($save_error==='' && mb_strlen($api_token)>64) {
 				$save_error='接口令牌过长';
@@ -85,6 +93,8 @@ if (!empty($_POST)) {
 					'github_url'=>$github_url,
 					'show_github'=>$show_github,
 					'since_year'=>$since_year,
+					'user_quota_mb'=>$user_quota_mb,
+					'user_daily_files'=>$user_daily_files,
 					'webp_enabled'=>$webp,
 					'api_token'=>$api_token,
 				]])) {
@@ -280,6 +290,7 @@ $smarty->assign('otp_backup_left',otp_backup_left());
 $smarty->assign('otp_backup_show',isset($_SESSION['otp_backup_show'])?$_SESSION['otp_backup_show']:null);
 unset($_SESSION['otp_backup_show']);
 $smarty->assign('mod_keys',$mod_keys);
+$smarty->assign('api_tokens',$db->select('api_tokens',['id','name','token','enabled','uses','last_used','created'],['ORDER'=>['id'=>'ASC']]));
 $smarty->assign('mod_limit',MOD_MONTHLY_LIMIT);
 $smarty->assign('day_limit',MOD_DAILY_LIMIT);
 $smarty->display('tpl_seting.php');

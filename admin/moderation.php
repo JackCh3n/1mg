@@ -65,6 +65,29 @@ if (isset($_GET['type']) && in_array($_GET['type'],['ban_ip','unban_ip']) && $_S
 	header('Location: '.($_SERVER['HTTP_REFERER'] ?? 'moderation.php'));
 	exit();
 }
+//API令牌管理(增/启停/删),从设置页提交后回跳
+if (isset($_GET['type']) && strpos($_GET['type'],'token_')===0 && isset($_POST['_csrf']) && $_SERVER['REQUEST_METHOD']==='POST') {
+	if (csrf_verify($_POST['_csrf'])) {
+		$t=$_GET['type'];
+		if ($t==='token_add') {
+			$name=mb_substr(trim((string)$_POST['name']),0,32);
+			$tok=bin2hex(random_bytes(16));
+			$db->insert('api_tokens',['name'=>$name?:'未命名','token'=>$tok,'enabled'=>1,'uses'=>0,'created'=>date('Y-m-d H:i:s')]);
+			admin_log('token_add',$name);
+		}elseif ($t==='token_toggle') {
+			$id=(int)$_POST['id'];
+			$row=$db->get('api_tokens',['enabled'],['id'=>$id]);
+			if ($row) { $db->update('api_tokens',['enabled'=>$row['enabled']?0:1],['id'=>$id]); admin_log('token_toggle','id='.$id); }
+		}elseif ($t==='token_del') {
+			$id=(int)$_POST['id'];
+			$db->delete('api_tokens',['id'=>$id]);
+			admin_log('token_del','id='.$id);
+		}
+	}
+	header('Location: seting.php');
+	exit();
+}
+
 //鉴黄Key池管理(增/启停/删),从设置页提交后回跳
 if (isset($_GET['type']) && isset($_POST['_csrf']) && $_SERVER['REQUEST_METHOD']==='POST') {
 	$t=$_GET['type'];

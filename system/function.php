@@ -177,6 +177,119 @@ function format_size($size){
 }
 
 /**
+ * 校验API令牌:返回令牌名或false
+ * 接受 配置里的全局令牌(兼容旧设置) 或 数据库中的启用令牌
+ * @param  string $given
+ * @return string|false
+ */
+function api_token_check($given){
+	global $config;
+	$given=(string)$given;
+	if ($given==='') {
+		return false;
+	}
+	//旧配置的全局令牌
+	$global=isset($config['web']['api_token'])?trim((string)$config['web']['api_token']):'';
+	if ($global!=='' && hash_equals($global,$given)) {
+		return '全局令牌';
+	}
+	try {
+		$row=$GLOBALS['db']->get('api_tokens',['id','name'],['token'=>$given,'enabled'=>1]);
+		if (!empty($row)) {
+			//记录用量(尽力而为,失败不影响鉴权)
+			try {
+				$GLOBALS['db']->pdo->prepare("UPDATE api_tokens SET uses = uses + 1, last_used = ? WHERE id = ?")
+					->execute([date('Y-m-d H:i:s'), $row['id']]);
+			} catch (Exception $e) {}
+			return $row['name']?:'未命名';
+		}
+	} catch (Exception $e) {}
+	return false;
+}
+
+/**
+ * 是否开启了API令牌鉴权(配置了全局令牌 或 存在启用的DB令牌)
+ * @return bool
+ */
+function api_token_required(){
+	global $config;
+	if (isset($config['web']['api_token']) && trim((string)$config['web']['api_token'])!=='') {
+		return true;
+	}
+	try {
+		return $GLOBALS['db']->count('api_tokens',['enabled'=>1])>0;
+	} catch (Exception $e) {
+		return false;
+	}
+}
+
+/**
+ * 取一个可用于前台内置的令牌(优先配置令牌,其次第一个启用的DB令牌)
+ * @return string
+ */
+function api_token_for_web(){
+	global $config;
+	$global=isset($config['web']['api_token'])?trim((string)$config['web']['api_token']):'';
+	if ($global!=='') {
+		return $global;
+	}
+	try {
+		$row=$GLOBALS['db']->get('api_tokens','token',['enabled'=>1,'ORDER'=>['id'=>'ASC']]);
+		return $row?:'';
+	} catch (Exception $e) {
+		return '';
+	}
+}
+
+/**
+ * 用户已用存储字节数
+ * @param  int $user_id
+ * @return int
+ */
+function user_storage_used($user_id){
+	try {
+		$sum=$GLOBALS['db']->sum('imginfo','size',['user_id'=>(int)$user_id,'see'=>1]);
+		return (int)$sum;
+	} catch (Exception $e) {
+		return 0;
+	}
+}
+
+/**
+ * 用户今日上传张数
+ * @param  int $user_id
+ * @return int
+ */
+function user_today_count($user_id){
+	try {
+		return (int)$GLOBALS['db']->count('imginfo',['user_id'=>(int)$user_id,'date[~]'=>date('Y-m-d')]);
+	} catch (Exception $e) {
+		return 0;
+	}
+}
+
+/**
+ * 用户配额检查
+ * @param  int $user_id
+ * @param  int $add_bytes 本次上传大小
+ * @return string 错误信息,空=通过
+ */
+function user_quota_check($user_id, $add_bytes=0){
+	global $config;
+	$quota_mb=(int)(isset($config['web']['user_quota_mb'])?$config['web']['user_quota_mb']:0);
+	$daily=(int)(isset($config['web']['user_daily_files'])?$config['web']['user_daily_files']:0);
+	if ($quota_mb>0) {
+		$limit=$quota_mb*1048576;
+		if (user_storage_used($user_id)+$add_bytes > $limit) {
+			return '已超出你的存储配额('.$quota_mb.'MB),请先删除部分图片';
+		}
+	}
+	if ($daily>0 && user_today_count($user_id) >= $daily) {
+		return '今日上传已达上限('.$daily.'张),请明天再试';
+	}
+	return '';
+}
+/**
  * IP是否被封禁
  * @param  string $ip
  * @return bool
@@ -427,11 +540,31 @@ function db_init_sqlite($db){
 		ip TEXT DEFAULT '',
 		date TEXT DEFAULT ''
 	)");
+	//API令牌(多令牌,可独立吊销)
+	$pdo->exec("CREATE TABLE IF NOT EXISTS api_tokens (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT DEFAULT '',
+		token TEXT UNIQUE,
+		enabled INTEGER DEFAULT 1,
+		uses INTEGER DEFAULT 0,
+		last_used TEXT DEFAULT '',
+		created TEXT DEFAULT ''
+	)");
 	//IP黑名单
 	$pdo->exec("CREATE TABLE IF NOT EXISTS ban_ip (
 		ip TEXT PRIMARY KEY,
 		reason TEXT DEFAULT '',
 		date TEXT DEFAULT ''
+	)");
+	//API令牌(多令牌,可独立吊销)
+	$pdo->exec("CREATE TABLE IF NOT EXISTS api_tokens (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT DEFAULT '',
+		token TEXT UNIQUE,
+		enabled INTEGER DEFAULT 1,
+		uses INTEGER DEFAULT 0,
+		last_used TEXT DEFAULT '',
+		created TEXT DEFAULT ''
 	)");
 	//IP黑名单
 	$pdo->exec("CREATE TABLE IF NOT EXISTS ban_ip (

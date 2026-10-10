@@ -39,6 +39,13 @@
                     <span class="text-muted" style="font-size:13px;align-self:center">MB(1-50,注意不超过服务器 upload_max_filesize)</span>
                 </div>
                 <div class="form-row">
+                    <label>用户配额</label>
+                    <input type="number" class="form-control" name="user_quota_mb" min="0" max="1048576" value="{$config['web']['user_quota_mb']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">MB 每人存储上限(0=不限)</span>
+                    <input type="number" class="form-control" name="user_daily_files" min="0" max="10000" value="{$config['web']['user_daily_files']}" style="max-width:120px;margin-left:16px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">张/天 每人每日上限(0=不限)</span>
+                </div>
+                <div class="form-row">
                     <label>单次张数</label>
                     <input type="number" class="form-control" name="max_files" min="1" max="100" value="{$config['web']['max_files']}" style="max-width:120px">
                     <span class="text-muted" style="font-size:13px;align-self:center">一次最多上传的张数(1-100)</span>
@@ -58,6 +65,40 @@
                 <div class="form-row"><label></label><span class="help-block" style="align-self:center">非空时上传/预检接口需携带令牌(表单字段 api_token 或请求头 X-API-Token),详见 <a href="../api.php" target="_blank">API 文档</a></span></div>
                 <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
             </form>
+        </div>
+    </div>
+
+    <div class="acard">
+        <div class="acard-head">接口令牌 <span class="sub">每个第三方工具用一个令牌,可独立吊销;启用后上传/预检接口需要携带(表单字段 api_token 或请求头 X-API-Token)</span></div>
+        <div class="acard-body">
+            <table class="table">
+                <thead><tr><th>名称</th><th>令牌</th><th>调用次数</th><th>最后使用</th><th>状态</th><th style="width:70px">操作</th></tr></thead>
+                <tbody>
+                    {foreach $api_tokens as $t}
+                    <tr>
+                        <td>{$t['name']|escape}</td>
+                        <td style="font-family:var(--mono);font-size:12px;word-break:break-all">{$t['token']|escape}</td>
+                        <td>{$t['uses']}</td>
+                        <td class="text-muted">{$t['last_used']|default:'-'|escape}</td>
+                        <td><form method="post" action="moderation.php?type=token_toggle" style="display:inline">
+                            <input type="hidden" name="_csrf" value="{$csrf}">
+                            <input type="hidden" name="id" value="{$t['id']}">
+                            <button type="submit" class="btn btn-xs {if $t['enabled']}btn-success{else}btn-default{/if}">{if $t['enabled']}已启用{else}已停用{/if}</button></form></td>
+                        <td><form method="post" action="moderation.php?type=token_del" style="display:inline" onsubmit="return confirm('删除该令牌?使用它的工具将立即失效')">
+                            <input type="hidden" name="_csrf" value="{$csrf}">
+                            <input type="hidden" name="id" value="{$t['id']}">
+                            <button type="submit" class="btn btn-xs btn-danger">删除</button></form></td>
+                    </tr>
+                    {/foreach}
+                    {if count($api_tokens)==0}<tr><td colspan="6" class="empty-tip">暂无令牌(不启用鉴权时无需添加)</td></tr>{/if}
+                </tbody>
+            </table>
+            <form method="post" action="moderation.php?type=token_add" class="inline-form" style="margin-top:12px">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="text" class="form-control" name="name" placeholder="用途备注,例: PicGo" required style="max-width:220px">
+                <button type="submit" class="btn btn-primary btn-sm">生成新令牌</button>
+            </form>
+            <p class="help-block">上方「基本信息 → API 令牌」为全局令牌(兼容旧配置),两者都可用。</p>
         </div>
     </div>
 

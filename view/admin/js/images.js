@@ -6,12 +6,14 @@ $(function () {
     if (!$.fn.modal) { $.fn.modal = function () { return this; }; }
     var csrf = $('#recent-box').attr('data-csrf');
     //后台可配的上传限制
+    var API_TOKEN = $('#file').attr('data-api-token') || '';
     var MAX_SIZE = parseInt($('#file').attr('data-max-size'), 10) || 5;
     var MAX_COUNT = parseInt($('#file').attr('data-max-count'), 10) || 10;
 
     //上传控件
     $("#file").fileinput({
         uploadUrl: '../upload.php',
+        uploadExtraData: function () { return { api_token: API_TOKEN }; },
         allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
         browseLabel: '选择图片',
         removeLabel: '清除',

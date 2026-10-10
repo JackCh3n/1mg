@@ -9,11 +9,10 @@ require_once SYSTEM_ROOT.'function.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-//API令牌门(与上传接口一致)
-$api_token=isset($config['web']['api_token'])?trim((string)$config['web']['api_token']):'';
-if ($api_token!=='') {
+//API令牌门(与上传接口一致:全局令牌或DB令牌任一)
+if (api_token_required()) {
 	$given=isset($_REQUEST['api_token'])?$_REQUEST['api_token']:(isset($_SERVER['HTTP_X_API_TOKEN'])?$_SERVER['HTTP_X_API_TOKEN']:'');
-	if (!is_string($given) || !hash_equals($api_token,$given)) {
+	if (!is_string($given) || api_token_check($given)===false) {
 		json_exit(['code'=>401,'error'=>'API token 无效']);
 	}
 }

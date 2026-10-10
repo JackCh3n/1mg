@@ -10,8 +10,28 @@ if ($page<1) {
 }
 $per_page=50;
 
-//按IP搜索(只做格式校验,参数由Medoo参数化查询处理,不存在注入)
+//批量删除(多选)
+if (!empty($_POST['batch_del']) && !empty($_POST['ids'])) {
+	if (csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {
+		$n=0;
+		foreach ((array)$_POST['ids'] as $bid) {
+			$bid=(int)$bid;
+			$bpath=$db->get('imginfo','path',['id'=>$bid]);
+			if (empty($bpath)) { continue; }
+			trash_put($bpath);
+			$db->update('imginfo',['see'=>0],['id'=>$bid]);
+			$n++;
+		}
+		admin_log('image_batch_delete','count='.$n);
+	}
+	header('Location: logs.php?'.http_build_query(array_filter(['ip'=>$_GET['ip'] ?? '','kw'=>$_GET['kw'] ?? '','md5'=>$_GET['md5'] ?? ''])));
+	exit();
+}
+
+//筛选条件(参数由Medoo参数化查询处理,不存在注入)
 $search_ip=isset($_GET['ip'])?trim((string)$_GET['ip']):'';
+$search_kw=isset($_GET['kw'])?trim((string)$_GET['kw']):'';
+$search_md5=isset($_GET['md5'])?strtolower(trim((string)$_GET['md5'])):'';
 $where=['ORDER'=>['id'=>'DESC']];
 if ($search_ip!=='') {
 	if (!filter_var($search_ip, FILTER_VALIDATE_IP)) {
@@ -19,6 +39,14 @@ if ($search_ip!=='') {
 	}else{
 		$where['ip']=$search_ip;
 	}
+}
+if ($search_kw!=='') {
+	$where['name[~]']='%'.$search_kw.'%';
+}
+if ($search_md5!=='' && preg_match('/^[0-9a-f]{32}$/',$search_md5)) {
+	$where['md5']=$search_md5;
+}else{
+	$search_md5='';
 }
 
 $count=$db->count('imginfo',$where);
@@ -35,6 +63,8 @@ $data=[
 	'page'=>$page,
 	'total_pages'=>$total_pages,
 	'search_ip'=>$search_ip,
+	'search_kw'=>$search_kw,
+	'search_md5'=>$search_md5,
 ];
 
 $smarty = admin_smarty();
