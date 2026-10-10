@@ -537,3 +537,6 @@ body.drag-hint::after {
 	border: 3px dashed var(--accent);
 	border-radius: 6px;
 }
+
+/* fileinput 缩放按钮兜底隐藏(缩放预览依赖Bootstrap modal,已禁用) */
+.kv-file-zoom { display: none !important; }

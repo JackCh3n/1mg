@@ -2,6 +2,8 @@
  * 图片管理页: 上传控件 + 最近上传网格(带删除)
  */
 $(function () {
+    //无Bootstrap环境:fileinput的缩放预览依赖$.fn.modal,给空实现防止崩溃(缩放功能已禁用)
+    if (!$.fn.modal) { $.fn.modal = function () { return this; }; }
     var csrf = $('#recent-box').attr('data-csrf');
 
     //上传控件
@@ -17,6 +19,7 @@ $(function () {
         showRemove: true,
         showUpload: true,
         showCaption: false,
+        autoOrientImage: false,
         showZoom: false,
         showCancel: false,
         fileActionSettings: { showZoom: false, showDrag: false }

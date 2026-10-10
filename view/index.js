@@ -2,6 +2,8 @@
  * 前台逻辑: 上传(fileinput) + 秒传预检(SparkMD5) + 粘贴/全页拖拽上传 + 结果tabs + 内容区切换
  */
 $(function () {
+    //无Bootstrap环境:fileinput的缩放预览依赖$.fn.modal,给空实现防止崩溃(缩放功能已禁用)
+    if (!$.fn.modal) { $.fn.modal = function () { return this; }; }
 
     /* ---------- 结果 tabs(原生) ---------- */
     $('#result-tabs').on('click', 'button', function () {
@@ -63,6 +65,7 @@ $(function () {
         maxFilesNum: 10,
         maxFileCount: 10,
         showCaption: false,
+        autoOrientImage: false,
         showZoom: false,
         showCancel: false,
         fileActionSettings: { showZoom: false, showDrag: false }
@@ -198,6 +201,7 @@ $(function () {
                 allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
                 maxFileSize: 5120,
                 showCaption: false,
+        autoOrientImage: false,
                 showZoom: false,
                 showCancel: false,
                 fileActionSettings: { showZoom: false, showDrag: false }
