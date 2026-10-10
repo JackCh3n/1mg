@@ -27,6 +27,10 @@
 
 **禁止内容**: 色情/暴力/恐怖血腥、侵权、违规二维码、违反法律法规的图片,详见服务条款。
 
+## 本地测试
+
+Windows 下双击 `dev.bat`(或命令行运行)即自动启动 PHP 内置服务器并打开浏览器;加参数 `--no-browser` 不打开浏览器。中文提示为 GBK 编码,适配中文 Windows 的 cmd。
+
 ## 安装
 
 1. 需要 PHP 8.x,启用 pdo_sqlite / gd / zlib / openssl / curl 扩展
