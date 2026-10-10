@@ -17,7 +17,8 @@ if (isset($_GET['type']) && $_GET['type']==='testkey' && $_SERVER['REQUEST_METHO
 	if ($key==='') {
 		json_exit(['ok'=>false,'msg'=>'请先填写鉴黄 Key']);
 	}
-	$test_img='https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/320px-Image_created_with_a_mobile_phone.png';
+	//官方文档自带的示例图,moderatecontent自家的服务器一定能拉取到
+	$test_img='http://www.moderatecontent.com/img/logo.png';
 	$apiurl='https://www.moderatecontent.com/api/v2?key='.urlencode($key).'&url='.urlencode($test_img);
 	$curl=curl_init($apiurl);
 	curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36');
