@@ -7,6 +7,45 @@ require SYSTEM_ROOT.'auth.php';
 admin_require_login();
 require_once SYSTEM_ROOT.'moderate.php';
 
+//鉴黄Key可用性测试:用公开测试图调用一次接口,看Key是否被接受
+if (isset($_GET['type']) && $_GET['type']==='testkey' && $_SERVER['REQUEST_METHOD']==='POST') {
+	header('Content-Type: application/json; charset=utf-8');
+	if (!csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {
+		json_exit(['ok'=>false,'msg'=>'页面已过期,请刷新后重试']);
+	}
+	$key=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['key']);
+	if ($key==='') {
+		json_exit(['ok'=>false,'msg'=>'请先填写鉴黄 Key']);
+	}
+	$test_img='https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/320px-Image_created_with_a_mobile_phone.png';
+	$apiurl='https://www.moderatecontent.com/api/v2?key='.urlencode($key).'&url='.urlencode($test_img);
+	$curl=curl_init($apiurl);
+	curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36');
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($curl, CURLOPT_TIMEOUT, 12);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+	$resp=curl_exec($curl);
+	$err=curl_error($curl);
+	curl_close($curl);
+	$data=json_decode((string)$resp,true);
+	if ($resp===false || $err) {
+		json_exit(['ok'=>false,'msg'=>'接口连接失败: '.mb_substr($err,0,80)]);
+	}
+	if (!is_array($data)) {
+		json_exit(['ok'=>false,'msg'=>'接口返回异常,请稍后再试']);
+	}
+	if (isset($data['error_code']) && $data['error_code']==0) {
+		json_exit(['ok'=>true,'msg'=>'Key 有效,接口调用正常(识别等级: '.(isset($data['rating_letter'])?$data['rating_letter']:$data['rating_index']).')']);
+	}
+	if (isset($data['error_code']) && $data['error_code']==1001) {
+		//Key被接受但测试图拉取失败,同样说明Key可用
+		json_exit(['ok'=>true,'msg'=>'Key 有效(测试图片获取失败,不影响实际使用)']);
+	}
+	json_exit(['ok'=>false,'msg'=>'Key 无效或接口异常'.(isset($data['error_message'])?': '.$data['error_message']:'')]);
+}
+
 $msg='';
 //人工审核操作
 if (!empty($_POST['do']) && !empty($_POST['key'])) {

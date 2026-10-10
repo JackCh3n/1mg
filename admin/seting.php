@@ -96,17 +96,27 @@ if (!empty($_POST)) {
 
 		//界面皮肤
 		if ($action==='skin') {
-			$skin=in_array($_POST['default_skin'],['light','dark'])?$_POST['default_skin']:'light';
-			$accent=strtolower(trim((string)$_POST['accent']));
-			if ($accent!=='' && !preg_match('/^#[0-9a-f]{6}$/',$accent)) {
-				$save_error='强调色格式不正确(#RRGGBB)';
-			}else{
-				if (save_user_config(['web'=>['default_skin'=>$skin,'accent'=>$accent]])) {
-					admin_log('settings_skin','skin='.$skin.',accent='.$accent);
+			if (!empty($_POST['reset'])) {
+				//恢复默认外观
+				if (save_user_config(['web'=>['default_skin'=>'light','accent'=>'']])) {
+					admin_log('settings_skin_reset','');
 					header('Location: seting.php?msg=skin');
 					exit();
 				}
 				$save_error='配置文件写入失败,请检查 system 目录权限';
+			}else{
+				$skin=in_array($_POST['default_skin'],['light','dark'])?$_POST['default_skin']:'light';
+				$accent=strtolower(trim((string)$_POST['accent']));
+				if ($accent!=='' && !preg_match('/^#[0-9a-f]{6}$/',$accent)) {
+					$save_error='强调色格式不正确(#RRGGBB)';
+				}else{
+					if (save_user_config(['web'=>['default_skin'=>$skin,'accent'=>$accent]])) {
+						admin_log('settings_skin','skin='.$skin.',accent='.$accent);
+						header('Location: seting.php?msg=skin');
+						exit();
+					}
+					$save_error='配置文件写入失败,请检查 system 目录权限';
+				}
 			}
 		}
 

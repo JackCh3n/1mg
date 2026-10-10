@@ -13,7 +13,7 @@
                 <div class="form-row"><label>网站标题</label><input type="text" class="form-control" name="title" value="{$config['web']['title']|escape}" required></div>
                 <div class="form-row"><label>网址</label><input type="text" class="form-control" name="server" value="{$config['web']['server']|escape}" placeholder="https://example.com"></div>
                 <div class="form-row"><label>CDN 域名</label><input type="text" class="form-control" name="cdn" value="{$config['web']['cdn']|escape}" placeholder="https://cdn.example.com/"></div>
-                <div class="form-row"><label>鉴黄 Key</label><input type="text" class="form-control" name="key" value="{$config['web']['img_level_key']|escape}"></div>
+                <div class="form-row"><label>鉴黄 Key</label><input type="text" class="form-control" id="img_level_key" name="key" value="{$config['web']['img_level_key']|escape}" style="max-width:320px"><button type="button" class="btn btn-sm" id="test-key-btn">测试可用性</button><span class="help-block" id="test-key-result" style="margin:0 0 0 10px;align-self:center"></span></div>
                 <div class="form-row"><label>鉴黄口令</label><input type="text" class="form-control" name="pass" value="{$config['web']['img_level_pass']|escape}"><span class="help-block" style="margin:0 0 0 10px;align-self:center">同时用作归档 cron 接口的访问口令</span></div>
                 <div class="form-row">
                     <label>上传限速</label>
@@ -77,7 +77,7 @@
                     <input type="color" class="form-control" name="accent" value="{if $config['web']['accent']}{$config['web']['accent']}{else}#10b981{/if}" style="max-width:80px;height:40px;padding:4px">
                     <span class="text-muted" style="font-size:13px;align-self:center">按钮/链接/日历等主色</span>
                 </div>
-                <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
+                <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button> <button class="btn" type="submit" name="reset" value="1" onclick="localStorage.removeItem('mg_theme');return true;">恢复默认</button><span class="help-block" style="align-self:center;margin-left:10px">恢复为明亮皮肤与默认强调色(同时清除本机记忆)</span></div>
             </form>
         </div>
     </div>
@@ -166,3 +166,28 @@
     {/if}
 
 {include file="tpl_footer.php"}
+
+<script>
+{literal}
+(function(){
+    var btn=document.getElementById("test-key-btn");
+    if(!btn) return;
+    btn.addEventListener("click", function(){
+        var out=document.getElementById("test-key-result");
+        var key=document.getElementById("img_level_key").value;
+        var csrf=document.querySelector("input[name=_csrf]").value;
+        btn.disabled=true; btn.textContent="测试中…";
+        out.textContent=""; out.className="help-block";
+        fetch("moderation.php?type=testkey",{
+            method:"POST",
+            headers:{"Content-Type":"application/x-www-form-urlencoded"},
+            body:"_csrf="+encodeURIComponent(csrf)+"&key="+encodeURIComponent(key)
+        }).then(function(r){return r.json();}).then(function(d){
+            out.textContent=d.msg;
+            out.style.color=d.ok?"var(--ok)":"var(--danger)";
+        }).catch(function(){ out.textContent="请求失败"; out.style.color="var(--danger)"; })
+        .finally(function(){ btn.disabled=false; btn.textContent="测试可用性"; });
+    });
+})();
+{/literal}
+</script>

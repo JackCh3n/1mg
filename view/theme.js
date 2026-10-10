@@ -34,8 +34,11 @@
         root.setAttribute('data-skin', effectiveSkin());
         if (state.accent && /^#[0-9a-fA-F]{6}$/.test(state.accent)) {
             root.style.setProperty('--accent', state.accent);
+            var n = parseInt(state.accent.slice(1), 16);
+            root.style.setProperty('--accent-rgb', ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255));
         } else {
             root.style.removeProperty('--accent');
+            root.style.removeProperty('--accent-rgb');
         }
         document.querySelectorAll('[data-mg-theme-toggle]').forEach(function (el) {
             var dark = effectiveSkin() === 'dark';

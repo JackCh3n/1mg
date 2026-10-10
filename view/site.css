@@ -5,8 +5,10 @@
 
 :root {
 	--accent: #10b981;
-	--accent-weak: rgba(16, 185, 129, .12);
-	--accent-strong: #0ea371;
+	//弱色由 --accent-rgb 派生(theme.js切换强调色时同步更新),自定义强调色全站自动跟随
+	--accent-rgb: 16, 185, 129;
+	--accent-weak: rgba(var(--accent-rgb), .12);
+	--accent-strong: color-mix(in srgb, var(--accent) 82%, #000);
 	--bg: #f4f6f8;
 	--panel: #ffffff;
 	--panel-2: #f9fafb;
@@ -27,8 +29,8 @@
 }
 
 html[data-skin="dark"] {
-	--accent-weak: rgba(16, 185, 129, .16);
-	--accent-strong: #34d399;
+	--accent-weak: rgba(var(--accent-rgb), .18);
+	--accent-strong: color-mix(in srgb, var(--accent) 70%, #fff);
 	--bg: #0c0f15;
 	--panel: #141924;
 	--panel-2: #1a2030;
