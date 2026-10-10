@@ -37,6 +37,12 @@ if (!empty($_POST)) {
 			$since_year=(int)$_POST['since_year'];
 			$user_quota_mb=(int)$_POST['user_quota_mb'];
 			$user_daily_files=(int)$_POST['user_daily_files'];
+			$img_max_side=(int)$_POST['img_max_side'];
+			$img_jpeg_quality=(int)$_POST['img_jpeg_quality'];
+			$img_webp_quality=(int)$_POST['img_webp_quality'];
+			$watermark_text=trim(strip_tags((string)$_POST['watermark_text']));
+			$watermark_font=trim((string)$_POST['watermark_font']);
+			$ttl_enabled=isset($_POST['ttl_enabled'])?1:0;
 			$webp=isset($_POST['webp_enabled'])?1:0;
 			$api_token=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['api_token']);
 			foreach ([[$title,'网站标题',1,50],[$key,'图片鉴黄Key',0,64],[$pass,'图片鉴黄口令',0,64]] as $v) {
@@ -65,6 +71,21 @@ if (!empty($_POST)) {
 			}
 			if ($save_error==='' && ($user_daily_files<0 || $user_daily_files>10000)) {
 				$save_error='用户每日张数需在0-10000之间(0=不限)';
+			}
+			if ($save_error==='' && ($img_max_side<200 || $img_max_side>10000)) {
+				$save_error='缩放最长边需在200-10000px之间';
+			}
+			if ($save_error==='' && ($img_jpeg_quality<1 || $img_jpeg_quality>100)) {
+				$save_error='JPEG质量需在1-100之间';
+			}
+			if ($save_error==='' && ($img_webp_quality<1 || $img_webp_quality>100)) {
+				$save_error='WebP质量需在1-100之间';
+			}
+			if ($save_error==='' && mb_strlen($watermark_text)>32) {
+				$save_error='水印文字过长(最多32字)';
+			}
+			if ($save_error==='' && $watermark_text!=='' && $watermark_font!=='' && !is_file($watermark_font)) {
+				$save_error='水印字体文件不存在';
 			}
 			if ($save_error==='' && mb_strlen($api_token)>64) {
 				$save_error='接口令牌过长';
@@ -95,6 +116,12 @@ if (!empty($_POST)) {
 					'since_year'=>$since_year,
 					'user_quota_mb'=>$user_quota_mb,
 					'user_daily_files'=>$user_daily_files,
+					'img_max_side'=>$img_max_side,
+					'img_jpeg_quality'=>$img_jpeg_quality,
+					'img_webp_quality'=>$img_webp_quality,
+					'watermark_text'=>$watermark_text,
+					'watermark_font'=>$watermark_font,
+					'ttl_enabled'=>$ttl_enabled,
 					'webp_enabled'=>$webp,
 					'api_token'=>$api_token,
 				]])) {
@@ -241,7 +268,7 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 //存储信息
 require_once SYSTEM_ROOT.'moderate.php';
 $mod_keys=mod_keys_all();
-$db_file=ROOT.ltrim($config['db']['database_file'],'/');
+$db_file=db_file_path();
 $storage=[
 	'db_file'=>(is_file($db_file)?$db_file:'尚未创建'),
 	'db_size'=>is_file($db_file)?format_size(filesize($db_file)):'0',

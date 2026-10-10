@@ -146,6 +146,49 @@
         </div>
     </div>
     <div class="acard">
+        <div class="acard-head">图片处理 <span class="sub">压缩参数与水印,修改后对之后的上传生效</span></div>
+        <div class="acard-body">
+            <form action="seting.php" method="post">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="hidden" name="action" value="site">
+                <input type="hidden" name="title" value="{$config['web']['title']|escape}">
+                <input type="hidden" name="server" value="{$config['web']['server']|escape}">
+                <input type="hidden" name="cdn" value="{$config['web']['cdn']|escape}">
+                <input type="hidden" name="key" value="{$config['web']['img_level_key']|escape}">
+                <input type="hidden" name="pass" value="{$config['web']['img_level_pass']|escape}">
+                <input type="hidden" name="rate_hour" value="{$config['web']['rate_hour']}">
+                <input type="hidden" name="max_size_mb" value="{$config['web']['max_size_mb']}">
+                <input type="hidden" name="max_files" value="{$config['web']['max_files']}">
+                <input type="hidden" name="github_url" value="{$config['web']['github_url']|escape}">
+                <input type="hidden" name="since_year" value="{$config['web']['since_year']}">
+                <input type="hidden" name="user_quota_mb" value="{$config['web']['user_quota_mb']}">
+                <input type="hidden" name="user_daily_files" value="{$config['web']['user_daily_files']}">
+                <div class="form-row"><label>缩放最长边</label>
+                    <input type="number" class="form-control" name="img_max_side" min="200" max="10000" value="{$config['web']['img_max_side']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">px 超出自动等比缩小</span></div>
+                <div class="form-row"><label>JPEG 质量</label>
+                    <input type="number" class="form-control" name="img_jpeg_quality" min="1" max="100" value="{$config['web']['img_jpeg_quality']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">1-100,越大越清晰体积越大</span></div>
+                <div class="form-row"><label>WebP 质量</label>
+                    <input type="number" class="form-control" name="img_webp_quality" min="1" max="100" value="{$config['web']['img_webp_quality']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">1-100</span></div>
+                <div class="form-row"><label>水印文字</label>
+                    <input type="text" class="form-control" name="watermark_text" value="{$config['web']['watermark_text']|escape}" placeholder="留空=不加水印" style="max-width:260px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">叠加在右下角</span></div>
+                <div class="form-row"><label>水印字体</label>
+                    <input type="text" class="form-control" name="watermark_font" value="{$config['web']['watermark_font']|escape}" placeholder="TTF 字体完整路径(可留空)" style="max-width:320px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">留空用内置字体(仅英文/数字);中文水印需指定中文字体,如 C:/Windows/Fonts/msyh.ttc</span></div>
+                <div class="form-row"><label>文件有效期</label>
+                    <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text)">
+                        <input type="checkbox" name="ttl_enabled" value="1"{if $config['web']['ttl_enabled']} checked{/if} style="width:17px;height:17px">
+                        允许上传者选择有效期(1/7/30天/永久)
+                    </label></div>
+                <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="acard">
         <div class="acard-head">数据保留策略 <span class="sub">在线 → 归档 → 清理,三级保留</span></div>
         <div class="acard-body">
             <form action="seting.php" method="post">

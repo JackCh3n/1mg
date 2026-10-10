@@ -69,6 +69,18 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                     data-max-size="<?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>"
                     data-max-count="<?php echo (int)($config['web']['max_files'] ?? 10); ?>">
             </div>
+<?php if (!empty($config['web']['ttl_enabled'])): ?>
+            <div class="card" style="padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span class="text-muted" style="font-size:13.5px">文件有效期:</span>
+                <select class="form-control" id="ttl-days" style="max-width:200px">
+                    <option value="0">永久保存</option>
+                    <option value="1">1 天后自动删除</option>
+                    <option value="7">7 天后自动删除</option>
+                    <option value="30">30 天后自动删除</option>
+                </select>
+                <span class="text-muted" style="font-size:12.5px">到期后图片会移入回收站,可由管理员恢复</span>
+            </div>
+<?php endif; ?>
             <div class="card" id="showurl" style="display:none">
                 <div class="tabs" id="result-tabs">
                     <button type="button" class="active" data-tab="urlcode">URL</button>

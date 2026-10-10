@@ -61,7 +61,7 @@ $(function () {
     /* ---------- 上传控件 ---------- */
     $("#file").fileinput({
         uploadUrl: 'upload.php',
-        uploadExtraData: function () { return { api_token: API_TOKEN }; },
+        uploadExtraData: function () { return { api_token: API_TOKEN, ttl_days: $('#ttl-days').val() || 0 }; },
         allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
         browseLabel: '选择图片',
         removeLabel: '清除',
@@ -249,7 +249,7 @@ $(function () {
         $.getJSON('user/today.php', function (data) {
             $("#file").fileinput('destroy').fileinput($.extend({
                 uploadUrl: 'upload.php',
-                uploadExtraData: function () { return { api_token: API_TOKEN }; },
+                uploadExtraData: function () { return { api_token: API_TOKEN, ttl_days: $('#ttl-days').val() || 0 }; },
                 allowedFileExtensions: ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp'],
                 browseLabel: '选择图片',
                 removeLabel: '清除',

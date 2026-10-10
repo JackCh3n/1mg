@@ -116,6 +116,13 @@ function archive_run($online_days, $archive_days){
 		$purged_files++;
 	}
 
+	//处理设置了有效期的图片:到期移入回收站(可在回收站窗口内恢复)
+	$expired=$db->select('imginfo',['id','path'],['see'=>1,'expire_at[!]'=>'','expire_at[<]'=>date('Y-m-d H:i:s'),'LIMIT'=>200]);
+	foreach ($expired as $ex) {
+		trash_put($ex['path']);
+		$db->update('imginfo',['see'=>0],['id'=>$ex['id']]);
+	}
+
 	//顺带清理回收站中超过保留期的文件
 	$trash_days=(int)($GLOBALS['config']['web']['trash_days'] ?? 30);
 	trash_purge($trash_days);

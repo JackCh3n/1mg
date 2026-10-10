@@ -119,6 +119,15 @@ if (!is_dir(ROOT.$file_path) && !@mkdir(ROOT.$file_path,0755,true)) {
 	json_exit(['code'=>110,'error'=>'目录创建失败']);
 }
 
+//文件有效期(仅后台开启TTL时接受,0=永久)
+$expire_at='';
+if (!empty($config['web']['ttl_enabled'])) {
+	$ttl_days=(int)(isset($_POST['ttl_days'])?$_POST['ttl_days']:0);
+	if (in_array($ttl_days,[1,7,30],true)) {
+		$expire_at=date('Y-m-d H:i:s', strtotime('+'.(int)$ttl_days.' days'));
+	}
+}
+
 //压缩保存(WebP转换按后台设置,最终扩展名以压缩结果为准;落盘路径=基础名+最终扩展名)
 $name_base=date('His').mt_rand(100,999);
 $result=compress_image($file['tmp_name'],ROOT.$file_path.'/'.$name_base,$file_ext,!empty($config['web']['webp_enabled']));
@@ -145,6 +154,7 @@ try {
 		'see'=>1,
 		'delete_token'=>$delete_token,
 		'user_id'=>$uid,
+		'expire_at'=>$expire_at,
 	]);
 } catch (Exception $e) {
 	$insert_ok=false;

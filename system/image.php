@@ -21,6 +21,13 @@ define('IMG_JPEG_QUALITY', 80);
  * @return array  ['ok'=>bool,'ext'=>最终扩展名,'size'=>最终大小,'compress'=>是否被压缩/转码]
  */
 function compress_image($src, $dest_base, $ext, $webp=false){
+	//参数从后台配置读取(带常量兜底)
+	$cfg=isset($GLOBALS['config']['web'])?$GLOBALS['config']['web']:[];
+	$max_side=(int)(isset($cfg['img_max_side'])?$cfg['img_max_side']:IMG_MAX_SIDE);
+	$jpeg_q=(int)(isset($cfg['img_jpeg_quality'])?$cfg['img_jpeg_quality']:IMG_JPEG_QUALITY);
+	$webp_q=(int)(isset($cfg['img_webp_quality'])?$cfg['img_webp_quality']:82);
+	$wm_text=trim((string)(isset($cfg['watermark_text'])?$cfg['watermark_text']:''));
+	$wm_font=trim((string)(isset($cfg['watermark_font'])?$cfg['watermark_font']:''));
 	$info=getimagesize($src);
 	if ($info===false) {
 		return ['ok'=>false,'ext'=>$ext,'size'=>0,'compress'=>0];
@@ -91,8 +98,8 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 	$w=imagesx($img);
 	$h=imagesy($img);
 	$side=max($w,$h);
-	if ($side>IMG_MAX_SIDE) {
-		$scale=IMG_MAX_SIDE/$side;
+	if ($side>$max_side && $max_side>0) {
+		$scale=$max_side/$side;
 		$nw=max(1,(int)round($w*$scale));
 		$nh=max(1,(int)round($h*$scale));
 		$scaled=imagecreatetruecolor($nw,$nh);
@@ -105,14 +112,19 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 		$compress=1;
 	}
 
+	//叠加水印(配置了水印文字时)
+	if ($wm_text!=='') {
+		watermark_apply($img, $wm_text, $wm_font);
+	}
+
 	//重编码到目标路径
 	$done=false;
 	if ($ext==='webp') {
-		$done=@imagewebp($img,$dest,82);
+		$done=@imagewebp($img,$dest,$webp_q);
 	}elseif ($ext==='png') {
 		$done=@imagepng($img,$dest,6);
 	}else{
-		$done=@imagejpeg($img,$dest,IMG_JPEG_QUALITY);
+		$done=@imagejpeg($img,$dest,$jpeg_q);
 	}
 	imagedestroy($img);
 	if (!$done) {
@@ -132,6 +144,40 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 	}
 	$compress=1;
 	return ['ok'=>true,'ext'=>$ext,'size'=>$final_size,'compress'=>$compress];
+}
+
+/**
+ * 在图片右下角叠加水印(支持TTF字体,未配置字体时用内置位图字体)
+ * @param resource $img
+ * @param string $text
+ * @param string $font TTF字体路径(可空)
+ */
+function watermark_apply($img, $text, $font=''){
+	$w=imagesx($img);
+	$h=imagesy($img);
+	$color=imagecolorallocatealpha($img, 255, 255, 255, 78);
+	$shadow=imagecolorallocatealpha($img, 0, 0, 0, 78);
+	if ($font!=='' && is_file($font) && function_exists('imagettftext')) {
+		$size=max(12, (int)round($w/45));
+		$box=imagettfbbox($size, 0, $font, $text);
+		$tw=abs($box[2]-$box[0]);
+		$th=abs($box[5]-$box[1]);
+		$x=max(4, $w-$tw-14);
+		$y=max($th+8, $h-12);
+		imagettftext($img, $size, 0, $x+1, $y+1, $shadow, $font, $text);
+		imagettftext($img, $size, 0, $x, $y, $color, $font, $text);
+	} else {
+		//内置位图字体:仅ASCII,中文会显示为乱码,故先过滤
+		$ascii=preg_replace('/[^\x20-\x7E]/', '', $text);
+		if ($ascii!=='') {
+			$fw=imagefontwidth(5);
+			$fh=imagefontheight(5);
+			$x=max(2, $w-strlen($ascii)*$fw-8);
+			$y=max($fh, $h-$fh-6);
+			imagestring($img, 5, $x+1, $y+1, $ascii, $shadow);
+			imagestring($img, 5, $x, $y, $ascii, $color);
+		}
+	}
 }
 
 /**

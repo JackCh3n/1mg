@@ -1,6 +1,7 @@
 {include file="tpl_header.php"}
 
     {if $archive_msg}<div class="alert alert-danger">{$archive_msg|escape}</div>{/if}
+    {if isset($smarty.get.imported)}<div class="alert alert-success">归档导入完成: 新增 {$smarty.get.imported} 条,跳过(已存在) {$smarty.get.skipped} 条</div>{/if}
     {if $orphan_msg}<div class="alert alert-success">{$orphan_msg|escape}</div>{/if}
 
     <!-- 统计卡片 -->
@@ -37,6 +38,7 @@
             数据归档
             <span class="sub">在线保留 {$retention_online} 天 → 归档备份 {$retention_archive} 天 → 到期删除</span>
             <span class="head-right">
+                <a class="btn btn-sm" href="archive.php?type=backup" title="下载 SQLite 数据库的 gzip 压缩备份">备份数据库</a>
                 <a class="btn btn-sm" href="index.php?action=archive_run&amp;token={$csrf}" onclick="return confirm('立即执行归档?')">立即归档</a>
             </span>
         </div>
@@ -48,7 +50,7 @@
             <p style="margin-top:0"><a class="btn btn-sm" href="index.php?action=orphan&amp;token={$csrf}" onclick="return confirm('扫描并清理磁盘上没有数据库记录的孤儿图片文件?')">扫描清理孤儿文件</a></p>
             <table class="table">
                 <thead>
-                    <tr><th>日期</th><th>记录数</th><th>大小</th><th style="width:130px">下载</th></tr>
+                    <tr><th>日期</th><th>记录数</th><th>大小</th><th style="width:210px">操作</th></tr>
                 </thead>
                 <tbody>
                     {foreach $archive_files as $f}
@@ -56,7 +58,10 @@
                         <td>{$f['yyyymmdd']}</td>
                         <td>{$f['rows']}</td>
                         <td>{format_size($f['size'])}</td>
-                        <td><a class="btn btn-xs" href="archive.php?type=download&amp;file={$f['yyyymmdd']}">下载 .csv.gz</a></td>
+                        <td>
+                            <a class="btn btn-xs" href="archive.php?type=download&amp;file={$f['yyyymmdd']}">下载</a>
+                            <a class="btn btn-xs btn-success" href="archive.php?type=import&amp;file={$f['yyyymmdd']}&amp;token={$csrf}" onclick="return confirm('把该归档中的记录导回主库?(已存在的自动跳过)')">导入</a>
+                        </td>
                     </tr>
                     {/foreach}
                     {if count($archive_files)==0}

@@ -36,6 +36,14 @@ $config=[
 		'retention_online'=>7,   //在线保留天数(主库)
 		'retention_archive'=>180,//归档压缩包保留天数
 		'trash_days'=>30,        //回收站文件保留天数(删除的图片可在此期间恢复)
+		//图片处理(压缩/水印)
+		'img_max_side'=>2560,   //超大图等比缩放的最长边(px)
+		'img_jpeg_quality'=>80, //JPEG压缩质量(1-100)
+		'img_webp_quality'=>82, //WebP压缩质量(1-100)
+		'watermark_text'=>'',   //水印文字(空=关闭;中文需在下方配置字体文件)
+		'watermark_font'=>'',   //TTF字体完整路径(留空则用GD内置位图字体,仅支持英文/数字)
+		//文件有效期(TTL)
+		'ttl_enabled'=>0,        //1=上传时允许选择有效期
 		//用户配额(0=不限制)
 		'user_quota_mb'=>0,      //每个用户的存储上限(MB)
 		'user_daily_files'=>0,   //每个用户每日上传张数上限

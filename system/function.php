@@ -162,6 +162,23 @@ function get_client_ip($type = 0,$adv=false) {
 }
 
 /**
+ * SQLite数据库文件的绝对路径(配置里可能已是绝对路径,也可能还是相对站点根)
+ * @return string
+ */
+function db_file_path(){
+	global $config;
+	$f=(string)($config['db']['database_file'] ?? '');
+	if ($f==='') {
+		return '';
+	}
+	//已是绝对路径(含盘符或前导斜杠)直接返回,否则相对站点根解析
+	if ($f[0]==='/' || $f[0]==='\\' || preg_match('#^[A-Za-z]:#',$f)) {
+		return str_replace('\\','/',$f);
+	}
+	return str_replace('\\','/',ROOT.$f);
+}
+
+/**
  * 字节数转可读大小
  * @param  int $size
  * @return string
@@ -497,12 +514,15 @@ function db_init_sqlite($db){
 		name TEXT DEFAULT '',
 		size TEXT DEFAULT '',
 		delete_token TEXT DEFAULT '',
-		user_id INTEGER DEFAULT 0
+		user_id INTEGER DEFAULT 0,
+		expire_at TEXT DEFAULT ''
 	)");
 	$pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_token ON imginfo(delete_token)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_user ON imginfo(user_id)");
+	//老库补列: 图片有效期
+	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN expire_at TEXT DEFAULT ''"); } catch (Exception $e) {}
 	//注册用户
 	$pdo->exec("CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
