@@ -61,7 +61,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                 <p>拖拽上传 · 自动压缩 · 相同文件秒传 · 单张 <?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>MB,一次最多 <?php echo (int)($config['web']['max_files'] ?? 10); ?> 张</p>
             </div>
             <div class="card upload-card">
-                <input id="file" type="file" multiple class="file"
+                <input id="file" type="file" multiple class="mg-upload"
                     data-overwrite-initial="false" data-min-file-count="1" data-max-file-count="10" name="file" accept="image/*"
                     data-api-token="<?php echo htmlspecialchars($config['web']['api_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                     data-max-size="<?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>"

@@ -129,34 +129,67 @@ $(function () {
         addFiles(e.dataTransfer.files);
     });
 
-    //已加载文件的md5缓存: previewId -> {md5, exists, url}
+    //秒传状态: previewId -> {md5, state: idle|checking|new|exists, url}
+    //选择文件时只算md5(不发请求);秒传预检推迟到点击上传时执行
     var md5Map = {};
 
-    //文件加入队列先算md5,服务器已有则直接展示地址并移出队列(秒传)
     $('#file').on('fileloaded', function (event, file, previewId, index, reader) {
+        md5Map[previewId] = { md5: '', state: 'idle', url: '' };
         if (typeof SparkMD5 === 'undefined') return;
         computeFileMd5(file, function (md5) {
-            $.getJSON('check.php', { md5: md5, api_token: API_TOKEN }, function (res) {
-                if (res && res.code == 'success') {
-                    md5Map[previewId] = { md5: md5, exists: true, url: res.data.url };
-                    showResults();
-                    appendUrl(res.data.url, file.name);
-                    appendDelete(res.data.delete);
-                    $('#' + previewId).find('.kv-file-remove').click();
-                } else {
-                    md5Map[previewId] = { md5: md5, exists: false };
-                }
-            });
+            if (md5Map[previewId]) md5Map[previewId].md5 = md5;
         });
     });
 
-    //兜底:上传请求发出前若秒传结果已出,取消该文件上传
     $('#file').on('filepreupload', function (event, data, previewId, index) {
         var info = md5Map[previewId];
-        if (info && info.exists) {
+        var fname = data.files[0] ? data.files[0].name : 'image';
+        if (!info) return;                       //无状态记录,直接放行
+        if (info.state === 'new') return;        //已确认服务器没有,正常上传
+        if (info.state === 'exists') {           //已命中秒传,跳过传输
             showResults();
-            return { message: data.files[0].name + ' 已存在,秒传成功' };
+            return { message: fname + ' 已存在,秒传成功' };
         }
+        if (info.state === 'checking') {         //上一轮检测还没完成
+            return { message: fname + ' 正在秒传检测…' };
+        }
+        //idle: 先中止本次上传,异步检测后自动恢复
+        info.state = 'checking';
+        var proceed = function () {
+            $.getJSON('check.php', { md5: info.md5, api_token: API_TOKEN })
+                .done(function (res) {
+                    if (res && res.code == 'success') {
+                        info.state = 'exists';
+                        info.url = res.data.url;
+                        showResults();
+                        appendUrl(res.data.url, fname);
+                        appendDelete(res.data.delete);
+                        $('#' + previewId).find('.kv-file-remove').click();
+                    } else {
+                        resume();
+                    }
+                })
+                .fail(function () { resume(); });
+        };
+        var resume = function () {
+            //检测到服务器没有此文件,恢复上传(状态new后preupload放行,不会递归)
+            if (md5Map[previewId] === info) info.state = 'new';
+            $('#file').fileinput('upload');
+        };
+        //md5未算好或检测异常时,3秒兜底恢复上传
+        var guard = setTimeout(function () {
+            if (info.state === 'checking') resume();
+        }, 3000);
+        var origResume = resume;
+        resume = function () { clearTimeout(guard); origResume(); };
+        if (info.md5) { proceed(); }
+        else {
+            computeFileMd5(data.files[0], function (md5) {
+                info.md5 = md5;
+                proceed();
+            });
+        }
+        return { message: fname + ' 正在秒传检测…' };
     });
 
     $('#file').on('fileuploaded', function (event, data, previewId, index) {
