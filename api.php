@@ -96,7 +96,7 @@ JSON 路径:  data.url
     </div>
 
     <footer class="site-footer">
-        <div class="container">© <?php echo date('Y'); ?> <?php echo $e_title; ?> · Powered by 1mg</div>
+        <div class="container">© <?php echo (int)($config['web']['since_year'] ?? 2018); ?><?php if ((int)date('Y') > (int)($config['web']['since_year'] ?? 2018)) echo '-'.date('Y'); ?> <?php echo $e_title; ?> · Powered by 1mg</div>
     </footer>
 </body>
 </html>

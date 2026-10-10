@@ -41,6 +41,10 @@ $config=[
 		'max_files'=>10,         //单次最多上传张数
 		'webp_enabled'=>1,       //上传时转存WebP(更小,兼容性2026年已普及)
 		'api_token'=>'',         //非空时上传/预检接口要求携带此令牌(空=开放)
+		//展示项
+		'github_url'=>'https://github.com/JackCh3n/1mg', //开源地址(空=不显示链接)
+		'show_github'=>1,        //前台导航是否展示 GitHub 链接
+		'since_year'=>2018,      //项目起始年(版权年份自动计算)
 	]
 ];
 /*后台保存过的设置(存于json,不用拼接php代码,避免写入代码注入)*/

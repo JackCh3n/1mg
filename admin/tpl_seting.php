@@ -16,6 +16,19 @@
                 <div class="form-row"><label>鉴黄 Key</label><input type="text" class="form-control" id="img_level_key" name="key" value="{$config['web']['img_level_key']|escape}" style="max-width:320px"><button type="button" class="btn btn-sm" id="test-key-btn">测试可用性</button><span class="help-block" id="test-key-result" style="margin:0 0 0 10px;align-self:center"></span></div>
                 <div class="form-row"><label>鉴黄口令</label><input type="text" class="form-control" name="pass" value="{$config['web']['img_level_pass']|escape}"><span class="help-block" style="margin:0 0 0 10px;align-self:center">同时用作归档 cron 接口的访问口令</span></div>
                 <div class="form-row">
+                    <label>开源地址</label>
+                    <input type="text" class="form-control" name="github_url" value="{$config['web']['github_url']|escape}" placeholder="https://github.com/yourname/1mg" style="max-width:320px">
+                    <label style="width:auto;display:flex;align-items:center;gap:6px;font-weight:400;font-size:14px;color:var(--text);margin:0">
+                        <input type="checkbox" name="show_github" value="1"{if $config['web']['show_github']} checked{/if} style="width:17px;height:17px">
+                        前台展示 GitHub 链接
+                    </label>
+                </div>
+                <div class="form-row">
+                    <label>起始年份</label>
+                    <input type="number" class="form-control" name="since_year" min="1970" max="<?php echo (int)date('Y'); ?>" value="{$config['web']['since_year']}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">页脚版权年份自动计算: © 起始年-当前年</span>
+                </div>
+                <div class="form-row">
                     <label>上传限速</label>
                     <input type="number" class="form-control" name="rate_hour" min="0" max="10000" value="{$config['web']['rate_hour']}" style="max-width:120px">
                     <span class="text-muted" style="font-size:13px;align-self:center">次/小时/IP(0=不限制,含失败尝试)</span>

@@ -38,7 +38,9 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
             </div>
             <div class="nav-right">
                 <a href="api.php">API</a>
-                <a href="https://github.com/lenyuadmin/1mg" target="_blank" rel="noopener">GitHub</a>
+<?php if (!empty($config['web']['show_github']) && !empty($config['web']['github_url'])): ?>
+                <a href="<?php echo htmlspecialchars($config['web']['github_url'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">GitHub</a>
+<?php endif; ?>
 <?php if (!empty($_SESSION['user_id'])): ?>
                 <a href="user/center.php"><b><?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES, 'UTF-8'); ?></b></a>
                 <a href="user/logout.php">退出</a>
@@ -86,7 +88,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
         </section>
 
         <!-- 其他内容区(今日/关于/联系/条款) -->
-        <section id="qita" class="prose" style="display:none"></section>
+        <section id="qita" class="prose" style="display:none" data-github="<?php echo htmlspecialchars($config['web']['github_url'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"></section>
 
         <!-- 常用帮助 -->
         <section id="help" class="prose">
@@ -140,7 +142,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
 
     <footer class="site-footer">
         <div class="container">
-            © <?php echo date('Y'); ?> <?php echo $e_title; ?> · Powered by 1mg
+            © <?php echo (int)($config['web']['since_year'] ?? 2018); ?><?php if ((int)date('Y') > (int)($config['web']['since_year'] ?? 2018)) echo '-'.date('Y'); ?> <?php echo $e_title; ?> · Powered by 1mg
         </div>
     </footer>
 

@@ -308,7 +308,7 @@ $(function () {
         $('#sec-upload').hide();
         $('#qita').show().html(
             '<div class="card"><h1 style="margin:0 0 14px">联系我们</h1>' +
-            '<div class="callout"><p style="margin:0">如果是讨论技术问题或者报告 bug,请到 <a href="https://github.com/lenyuadmin/1mg/issues" target="_blank" rel="noopener">GitHub Issues</a> 提交,以免问题石沉大海。</p></div>' +
+            '<div class="callout"><p style="margin:0">如果是讨论技术问题或者报告 bug,请到 <a href="' + ($('#qita').attr('data-github') || 'https://github.com/JackCh3n/1mg') + '/issues" target="_blank" rel="noopener">GitHub Issues</a> 提交,以免问题石沉大海。</p></div>' +
             backBtn() + '</div>'
         );
         bindBack();

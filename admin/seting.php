@@ -32,6 +32,9 @@ if (!empty($_POST)) {
 			$rate_hour=(int)$_POST['rate_hour'];
 			$max_size_mb=(int)$_POST['max_size_mb'];
 			$max_files=(int)$_POST['max_files'];
+			$github_url=trim((string)$_POST['github_url']);
+			$show_github=isset($_POST['show_github'])?1:0;
+			$since_year=(int)$_POST['since_year'];
 			$webp=isset($_POST['webp_enabled'])?1:0;
 			$api_token=preg_replace('/[^A-Za-z0-9_-]/','', (string)$_POST['api_token']);
 			foreach ([[$title,'网站标题',1,50],[$key,'图片鉴黄Key',0,64],[$pass,'图片鉴黄口令',0,64]] as $v) {
@@ -48,6 +51,12 @@ if (!empty($_POST)) {
 			}
 			if ($save_error==='' && ($max_files<1 || $max_files>100)) {
 				$save_error='单次上传张数需在1-100之间';
+			}
+			if ($save_error==='' && $github_url!=='' && (!filter_var($github_url, FILTER_VALIDATE_URL) || !preg_match('#^https?://#i',$github_url))) {
+				$save_error='开源地址格式不正确';
+			}
+			if ($save_error==='' && ($since_year<1970 || $since_year>(int)date('Y'))) {
+				$save_error='起始年份需在1970到当前年份之间';
 			}
 			if ($save_error==='' && mb_strlen($api_token)>64) {
 				$save_error='接口令牌过长';
@@ -73,6 +82,9 @@ if (!empty($_POST)) {
 					'rate_hour'=>$rate_hour,
 					'max_size_mb'=>$max_size_mb,
 					'max_files'=>$max_files,
+					'github_url'=>$github_url,
+					'show_github'=>$show_github,
+					'since_year'=>$since_year,
 					'webp_enabled'=>$webp,
 					'api_token'=>$api_token,
 				]])) {
