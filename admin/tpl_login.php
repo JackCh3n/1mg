@@ -9,6 +9,7 @@
     <script src="../view/theme.js"></script>
 </head>
 <body>
+    <div class="login-wrap">
     <div class="login-box">
         <h2><span class="logo-dot"></span> {$title|escape} · 后台登录</h2>
         {if $login_error}
@@ -37,6 +38,7 @@
             <button type="submit" class="btn btn-primary btn-block">下一步</button>
         </form>
         {/if}
+    </div>
     </div>
 </body>
 </html>
