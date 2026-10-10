@@ -1,7 +1,7 @@
 {include file="tpl_header.php"}
 
     {if $archive_msg}<div class="alert alert-danger">{$archive_msg|escape}</div>{/if}
-    {if isset($smarty.get.imported)}<div class="alert alert-success">归档导入完成: 新增 {$smarty.get.imported} 条,跳过(已存在) {$smarty.get.skipped} 条</div>{/if}
+    {if isset($smarty.get.imported)}<div class="alert alert-success">归档导入完成: 新增 {$smarty.get.imported|escape|intval} 条,跳过(已存在) {$smarty.get.skipped|escape|intval} 条</div>{/if}
     {if $orphan_msg}<div class="alert alert-success">{$orphan_msg|escape}</div>{/if}
 
     <!-- 统计卡片 -->

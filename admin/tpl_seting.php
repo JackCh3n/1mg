@@ -150,19 +150,7 @@
         <div class="acard-body">
             <form action="seting.php" method="post">
                 <input type="hidden" name="_csrf" value="{$csrf}">
-                <input type="hidden" name="action" value="site">
-                <input type="hidden" name="title" value="{$config['web']['title']|escape}">
-                <input type="hidden" name="server" value="{$config['web']['server']|escape}">
-                <input type="hidden" name="cdn" value="{$config['web']['cdn']|escape}">
-                <input type="hidden" name="key" value="{$config['web']['img_level_key']|escape}">
-                <input type="hidden" name="pass" value="{$config['web']['img_level_pass']|escape}">
-                <input type="hidden" name="rate_hour" value="{$config['web']['rate_hour']}">
-                <input type="hidden" name="max_size_mb" value="{$config['web']['max_size_mb']}">
-                <input type="hidden" name="max_files" value="{$config['web']['max_files']}">
-                <input type="hidden" name="github_url" value="{$config['web']['github_url']|escape}">
-                <input type="hidden" name="since_year" value="{$config['web']['since_year']}">
-                <input type="hidden" name="user_quota_mb" value="{$config['web']['user_quota_mb']}">
-                <input type="hidden" name="user_daily_files" value="{$config['web']['user_daily_files']}">
+                <input type="hidden" name="action" value="imageproc">
                 <div class="form-row"><label>缩放最长边</label>
                     <input type="number" class="form-control" name="img_max_side" min="200" max="10000" value="{$config['web']['img_max_side']}" style="max-width:120px">
                     <span class="text-muted" style="font-size:13px;align-self:center">px 超出自动等比缩小</span></div>

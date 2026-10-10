@@ -62,7 +62,8 @@ if (isset($_GET['type']) && in_array($_GET['type'],['ban_ip','unban_ip']) && $_S
 			}
 		}
 	}
-	header('Location: '.($_SERVER['HTTP_REFERER'] ?? 'moderation.php'));
+		$ref=isset($_SERVER['HTTP_REFERER'])?parse_url($_SERVER['HTTP_REFERER'],PHP_URL_PATH):'';
+		header('Location: '.($ref?:'moderation.php'));
 	exit();
 }
 //API令牌管理(增/启停/删),从设置页提交后回跳

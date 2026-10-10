@@ -59,7 +59,7 @@
                     {/if}
                 </tbody>
             </table>
-            <form method="post" action="logs.php" id="batch-form" onsubmit="return confirm('确认批量删除选中的图片?')">
+            <form method="post" action="logs.php?{if $data['search_ip']}ip={$data['search_ip']|escape:'url'}&amp;{/if}{if $data['search_kw']}kw={$data['search_kw']|escape:'url'}&amp;{/if}{if $data['search_md5']}md5={$data['search_md5']|escape:'url'}{/if}" id="batch-form" onsubmit="return confirm('确认批量删除选中的图片?')">
                 <input type="hidden" name="_csrf" value="{$csrf}">
                 <input type="hidden" name="batch_del" value="1">
                 <input type="hidden" name="ip" value="{$data['search_ip']|escape}">
