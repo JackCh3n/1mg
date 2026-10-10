@@ -48,6 +48,23 @@ if (isset($_GET['type']) && $_GET['type']==='testkey' && $_SERVER['REQUEST_METHO
 }
 
 $msg='';
+//IP黑名单管理(封禁/解封)
+if (isset($_GET['type']) && in_array($_GET['type'],['ban_ip','unban_ip']) && $_SERVER['REQUEST_METHOD']==='POST') {
+	if (csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {
+		$ip=trim((string)$_POST['ip']);
+		if (filter_var($ip, FILTER_VALIDATE_IP)) {
+			if ($_GET['type']==='ban_ip') {
+				$db->pdo->prepare("INSERT OR REPLACE INTO ban_ip (ip,reason,date) VALUES (?,?,?)")->execute([$ip, mb_substr((string)($_POST['reason'] ?? ''),0,100), date('Y-m-d H:i:s')]);
+				admin_log('ip_ban',$ip);
+			} else {
+				$db->delete('ban_ip',['ip'=>$ip]);
+				admin_log('ip_unban',$ip);
+			}
+		}
+	}
+	header('Location: '.($_SERVER['HTTP_REFERER'] ?? 'moderation.php'));
+	exit();
+}
 //鉴黄Key池管理(增/启停/删),从设置页提交后回跳
 if (isset($_GET['type']) && isset($_POST['_csrf']) && $_SERVER['REQUEST_METHOD']==='POST') {
 	$t=$_GET['type'];
@@ -88,10 +105,7 @@ if (!empty($_POST['do']) && !empty($_POST['key'])) {
 		$row=$db->get('imginfo',['id','path'],['id'=>$key,'see'=>1]);
 		if (!empty($row)) {
 			if ($_POST['do']==='adult') {
-				$real_path=url_path($row['path']);
-				if (strpos($real_path,'i/')===0 && is_file(ROOT.$real_path)) {
-					@unlink(ROOT.$real_path);
-				}
+				trash_put($row['path']);
 				$db->update('imginfo',['see'=>0],['id'=>$key]);
 				admin_log('moderation_remove', $row['path']);
 				$msg='已删除违规图片';
@@ -127,6 +141,7 @@ $smarty->assign('nav_active','moderation');
 $smarty->assign('admin_user',$_SESSION['admin_user']);
 $smarty->assign('csrf',csrf_token());
 $smarty->assign('msg',$msg);
+$smarty->assign('ban_list',$db->select('ban_ip',['ip','reason','date'],['ORDER'=>['date'=>'DESC'],'LIMIT'=>100]));
 $smarty->assign('pending',$pending);
 $smarty->assign('pending_count',$pending_count);
 $smarty->assign('checked_count',$checked_count);

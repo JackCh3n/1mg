@@ -116,6 +116,10 @@ function archive_run($online_days, $archive_days){
 		$purged_files++;
 	}
 
+	//顺带清理回收站中超过保留期的文件
+	$trash_days=(int)($GLOBALS['config']['web']['trash_days'] ?? 30);
+	trash_purge($trash_days);
+
 	$meta['last_run']=date('Y-m-d H:i:s');
 	$meta['archived_total']=(int)$meta['archived_total']+$archived-$purged_rows;
 	if ($meta['archived_total']<0) {

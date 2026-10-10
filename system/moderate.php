@@ -131,10 +131,7 @@ function moderate_run($limit=12){
 			mod_key_use($key);
 			if (isset($html['rating_index']) && $html['rating_index']==3) {
 				//成人内容:删文件+标记see=0(同后台删除逻辑,可恢复)
-				$img_path=url_path($value['path']);
-				if (strpos($img_path,'i/')===0 && is_file(ROOT.$img_path)) {
-					unlink(ROOT.$img_path);
-				}
+				trash_put($value['path']);
 				$db->update('imginfo',['see'=>0],['id'=>$value['id']]);
 				$stat['adult']++;
 			}else{

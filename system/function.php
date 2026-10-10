@@ -177,6 +177,185 @@ function format_size($size){
 }
 
 /**
+ * IP是否被封禁
+ * @param  string $ip
+ * @return bool
+ */
+function ip_banned($ip){
+	try {
+		$row=$GLOBALS['db']->get('ban_ip','ip',['ip'=>(string)$ip]);
+		return !empty($row);
+	} catch (Exception $e) {
+		return false;
+	}
+}
+
+/**
+ * 回收站目录(不存在则创建)
+ * @return string
+ */
+function trash_dir(){
+	$dir=DATA_DIR.'trash';
+	if (!is_dir($dir)) {
+		@mkdir($dir,0755,true);
+	}
+	return $dir;
+}
+
+/**
+ * 把图片文件移入回收站(相对路径拍平命名: i/2610/10/a.jpg -> i_2610_10_a.jpg)
+ * @param  string $rel_path 数据库中的相对路径
+ * @return bool
+ */
+function trash_put($rel_path){
+	$rel=url_path($rel_path);
+	if (strpos($rel,'i/')!==0) {
+		return false;
+	}
+	$src=ROOT.$rel;
+	if (!is_file($src)) {
+		return false;//文件已不在(可能已在回收站)
+	}
+	return @rename($src, trash_dir().'/'.str_replace('/','_',$rel));
+}
+
+/**
+ * 从回收站还原文件到原路径
+ * @param  string $rel_path
+ * @return bool
+ */
+function trash_restore($rel_path){
+	$rel=url_path($rel_path);
+	if (strpos($rel,'i/')!==0) {
+		return false;
+	}
+	$src=trash_dir().'/'.str_replace('/','_',$rel);
+	if (!is_file($src)) {
+		return false;
+	}
+	$dir=ROOT.dirname($rel);
+	if (!is_dir($dir) && !@mkdir($dir,0755,true)) {
+		return false;
+	}
+	return @rename($src, ROOT.$rel);
+}
+
+/**
+ * 回收站是否存有该文件的备份
+ * @param  string $rel_path
+ * @return bool
+ */
+function trash_has($rel_path){
+	return is_file(trash_dir().'/'.str_replace('/','_',url_path($rel_path)));
+}
+
+/**
+ * 清理回收站中超过保留天数的文件
+ * @param  int $days
+ * @return array ['removed'=>n,'freed'=>bytes]
+ */
+function trash_purge($days){
+	$cutoff=time()-max(1,(int)$days)*86400;
+	$removed=0;
+	$freed=0;
+	foreach (glob(trash_dir().'/*') as $file) {
+		if (!is_file($file) || basename($file)==='.htaccess') {
+			continue;
+		}
+		if (filemtime($file)<$cutoff) {
+			$freed+=filesize($file);
+			@unlink($file);
+			$removed++;
+		}
+	}
+	return ['removed'=>$removed,'freed'=>$freed];
+}
+
+/**
+ * 回收站统计
+ * @return array ['files'=>n,'size'=>bytes]
+ */
+function trash_stat(){
+	$files=0;
+	$size=0;
+	foreach (glob(trash_dir().'/*') as $file) {
+		if (is_file($file) && basename($file)!=='.htaccess') {
+			$files++;
+			$size+=filesize($file);
+		}
+	}
+	return ['files'=>$files,'size'=>$size];
+}
+
+/**
+ * 生成OTP备份码(10个,每组XXXXX-XXXXX,仅显示一次,库内存哈希)
+ * @return array 明文备份码
+ */
+function otp_backup_generate(){
+	$codes=[];
+	$hashes=[];
+	$alphabet='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+	for ($i=0; $i<10; $i++) {
+		$code='';
+		for ($j=0; $j<10; $j++) {
+			$code.=$alphabet[random_int(0,strlen($alphabet)-1)];
+			if ($j===4) {
+				$code.='-';
+			}
+		}
+		$codes[]=$code;
+		$hashes[]=password_hash(str_replace('-','',$code), PASSWORD_DEFAULT);
+	}
+	$GLOBALS['db']->update('admin',['backup_codes'=>json_encode($hashes)],['id'=>$_SESSION['admin_id']]);
+	return $codes;
+}
+
+/**
+ * 校验并消费一个OTP备份码
+ * @param  string $code
+ * @return bool 是否有效
+ */
+function otp_backup_verify($code){
+	$clean=strtoupper(preg_replace('/[^A-Za-z0-9]/','', (string)$code));
+	if (strlen($clean)!==10 || empty($_SESSION['otp_pending'])) {
+		return false;
+	}
+	$row=$GLOBALS['db']->get('admin',['id','backup_codes'],['id'=>$_SESSION['otp_pending']['id']]);
+	if (empty($row) || $row['backup_codes']==='') {
+		return false;
+	}
+	$hashes=json_decode($row['backup_codes'],true);
+	if (!is_array($hashes)) {
+		return false;
+	}
+	foreach ($hashes as $i=>$hash) {
+		if (password_verify($clean,$hash)) {
+			unset($hashes[$i]);//消费已用码
+			$GLOBALS['db']->update('admin',['backup_codes'=>json_encode(array_values($hashes))],['id'=>$row['id']]);
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * 剩余OTP备份码数量
+ * @param  int $admin_id
+ * @return int
+ */
+function otp_backup_left($admin_id=0){
+	$id=$admin_id?(int)$admin_id:(int)(isset($_SESSION['admin_id'])?$_SESSION['admin_id']:0);
+	if (!$id) {
+		return 0;
+	}
+	$row=$GLOBALS['db']->get('admin',['backup_codes'],['id'=>$id]);
+	if (empty($row) || $row['backup_codes']==='') {
+		return 0;
+	}
+	$hashes=json_decode($row['backup_codes'],true);
+	return is_array($hashes)?count($hashes):0;
+}
+/**
  * SQLite自动初始化:建表/索引/默认管理员(无历史数据,全新库起步)
  * @param Medoo $db
  */
@@ -225,6 +404,7 @@ function db_init_sqlite($db){
 		password_hash TEXT,
 		otp_secret TEXT DEFAULT '',
 		otp_enabled INTEGER DEFAULT 0,
+		backup_codes TEXT DEFAULT '',
 		last_login TEXT DEFAULT ''
 	)");
 	$pdo->exec("CREATE TABLE IF NOT EXISTS stats_daily (
@@ -247,6 +427,18 @@ function db_init_sqlite($db){
 		ip TEXT DEFAULT '',
 		date TEXT DEFAULT ''
 	)");
+	//IP黑名单
+	$pdo->exec("CREATE TABLE IF NOT EXISTS ban_ip (
+		ip TEXT PRIMARY KEY,
+		reason TEXT DEFAULT '',
+		date TEXT DEFAULT ''
+	)");
+	//IP黑名单
+	$pdo->exec("CREATE TABLE IF NOT EXISTS ban_ip (
+		ip TEXT PRIMARY KEY,
+		reason TEXT DEFAULT '',
+		date TEXT DEFAULT ''
+	)");
 	//鉴黄Key池(moderatecontent,多Key轮询+日/月用量统计)
 	$pdo->exec("CREATE TABLE IF NOT EXISTS mod_keys (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -261,6 +453,10 @@ function db_init_sqlite($db){
 	//老库补列
 	try { $pdo->exec("ALTER TABLE mod_keys ADD COLUMN used_day TEXT DEFAULT ''"); } catch (Exception $e) {}
 	try { $pdo->exec("ALTER TABLE mod_keys ADD COLUMN used_day_count INTEGER DEFAULT 0"); } catch (Exception $e) {}
+	//老库补列: OTP备份码(JSON数组,存哈希)
+	try { $pdo->exec("ALTER TABLE admin ADD COLUMN backup_codes TEXT DEFAULT ''"); } catch (Exception $e) {}
+	//老库补列: OTP备份码(JSON数组,存哈希)
+	try { $pdo->exec("ALTER TABLE admin ADD COLUMN backup_codes TEXT DEFAULT ''"); } catch (Exception $e) {}
 	//首次运行播种默认管理员 admin / admin123456
 	$has_admin=$pdo->query("SELECT COUNT(*) FROM admin")->fetchColumn();
 	if (!$has_admin) {

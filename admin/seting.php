@@ -100,14 +100,17 @@ if (!empty($_POST)) {
 		if ($action==='policy') {
 			$online=(int)$_POST['retention_online'];
 			$archive=(int)$_POST['retention_archive'];
+			$trash_days=(int)$_POST['trash_days'];
 			if ($online<1 || $online>365) {
 				$save_error='在线保留天数需在1-365之间';
 			}elseif ($archive<7 || $archive>3650) {
 				$save_error='归档保留天数需在7-3650之间';
+			}elseif ($trash_days<1 || $trash_days>3650) {
+				$save_error='回收站保留天数需在1-3650之间';
 			}elseif ($archive<=$online) {
 				$save_error='归档保留天数必须大于在线保留天数';
 			}else{
-				if (save_user_config(['web'=>['retention_online'=>$online,'retention_archive'=>$archive]])) {
+				if (save_user_config(['web'=>['retention_online'=>$online,'retention_archive'=>$archive,'trash_days'=>$trash_days]])) {
 					admin_log('settings_policy','online='.$online.'d,archive='.$archive.'d');
 					header('Location: seting.php?msg=policy');
 					exit();
@@ -178,6 +181,15 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 			$_SESSION['otp_setup_secret']=totp_generate_secret();
 			header('Location: seting.php');
 			exit();
+		}elseif ($otp_action==='backup') {
+			if (empty($_SESSION['admin_id'])) {
+				$otp_error='请先登录';
+			}else{
+				$_SESSION['otp_backup_show']=otp_backup_generate();
+				admin_log('otp_backup_regen','');
+				header('Location: seting.php?msg=otp_backup');
+				exit();
+			}
 		}elseif ($otp_action==='cancel') {
 			unset($_SESSION['otp_setup_secret']);
 			header('Location: seting.php');
@@ -195,6 +207,8 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 					'otp_enabled'=>1,
 				],['id'=>$_SESSION['admin_id']]);
 				unset($_SESSION['otp_setup_secret']);
+				//绑定成功即生成一份备份码,在页面上显示一次
+				$_SESSION['otp_backup_show']=otp_backup_generate();
 				admin_log('otp_enable','');
 				header('Location: seting.php?msg=otp_on');
 				exit();
@@ -241,6 +255,7 @@ $messages=[
 	'password'=>'密码修改成功',
 	'otp_on'=>'两步验证已开启',
 	'otp_off'=>'两步验证已关闭',
+	'otp_backup'=>'备份码已重新生成(旧码已失效),请立即抄写保存',
 ];
 
 $smarty = admin_smarty();
@@ -259,6 +274,11 @@ if ($otp_setup!=='') {
 	$smarty->assign('otp_uri',totp_uri($otp_setup,$_SESSION['admin_user'],$config['web']['title']));
 }
 $smarty->assign('storage',$storage);
+$smarty->assign('trash',trash_stat());
+$smarty->assign('trash_days',(int)($config['web']['trash_days'] ?? 30));
+$smarty->assign('otp_backup_left',otp_backup_left());
+$smarty->assign('otp_backup_show',isset($_SESSION['otp_backup_show'])?$_SESSION['otp_backup_show']:null);
+unset($_SESSION['otp_backup_show']);
 $smarty->assign('mod_keys',$mod_keys);
 $smarty->assign('mod_limit',MOD_MONTHLY_LIMIT);
 $smarty->assign('day_limit',MOD_DAILY_LIMIT);

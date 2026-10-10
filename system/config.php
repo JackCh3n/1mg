@@ -35,6 +35,7 @@ $config=[
 		//数据保留策略
 		'retention_online'=>7,   //在线保留天数(主库)
 		'retention_archive'=>180,//归档压缩包保留天数
+		'trash_days'=>30,        //回收站文件保留天数(删除的图片可在此期间恢复)
 		//上传与接口
 		'rate_hour'=>60,         //每IP每小时上传上限(0=不限制)
 		'max_size_mb'=>5,        //单张图片上限(MB)

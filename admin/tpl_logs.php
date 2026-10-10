@@ -36,6 +36,12 @@
                                 <input type="hidden" name="key" value="{$value['id']}">
                                 <button type="submit" class="btn btn-xs btn-danger"{if !$value['see']} disabled{/if}>删除</button>
                             </form>
+                            <form method="post" action="moderation.php?type=ban_ip" style="display:inline" onsubmit="return confirm('封禁该 IP?')">
+                                <input type="hidden" name="_csrf" value="{$csrf}">
+                                <input type="hidden" name="ip" value="{$value['ip']|escape}">
+                                <input type="hidden" name="reason" value="上传违规内容">
+                                <button type="submit" class="btn btn-xs">封禁IP</button>
+                            </form>
                             <form method="post" action="images.php?type=restore" style="display:inline">
                                 <input type="hidden" name="_csrf" value="{$csrf}">
                                 <input type="hidden" name="key" value="{$value['id']}">

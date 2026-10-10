@@ -49,11 +49,8 @@ if (isset($_GET['type'])) {
 		}
 		$db->update('imginfo',['see'=>0],['id'=>$del_id]);
 		admin_log('image_delete',$del_path);
-		//只允许删除图片目录下的文件,防止路径被篡改后误删任意文件
-		$real_path=url_path($del_path);
-		if (strpos($real_path,'i/')===0 && is_file(ROOT.$real_path)) {
-			@unlink(ROOT.$real_path);
-		}
+		//移入回收站(可恢复),超期由归档任务清理;只处理图片目录下的文件
+		trash_put($del_path);
 		json_exit(['code'=>'success','error'=>'删除成功']);
 	}
 	//恢复(重新显示被删除的图片记录;文件已删除的记录保留,重新上传同md5文件会自动补回文件)
@@ -62,7 +59,11 @@ if (isset($_GET['type'])) {
 			json_exit(['code'=>110,'error'=>'非法请求']);
 		}
 		$rest_id=(int)$_POST['key'];
+		$rest_path=$db->get('imginfo','path',['id'=>$rest_id]);
 		$db->update('imginfo',['see'=>1],['id'=>$rest_id]);
+		if (!empty($rest_path)) {
+			trash_restore($rest_path);
+		}
 		admin_log('image_restore','id='.$rest_id);
 		json_exit(['code'=>'success','error'=>'恢复成功']);
 	}

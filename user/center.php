@@ -19,10 +19,7 @@ if (!empty($_POST['do']) && $_POST['do']==='del' && isset($_POST['key'])) {
 		$row=$db->get('imginfo',['id','path','see'],['id'=>$key,'user_id'=>$_SESSION['user_id']]);
 		if (!empty($row) && $row['see']) {
 			$db->update('imginfo',['see'=>0],['id'=>$key]);
-			$real_path=url_path($row['path']);
-			if (strpos($real_path,'i/')===0 && is_file(ROOT.$real_path)) {
-				@unlink(ROOT.$real_path);
-			}
+			trash_put($row['path']);
 			$msg='图片已删除';
 		}else{
 			$msg='记录不存在或不属于你';

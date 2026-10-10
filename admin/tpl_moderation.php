@@ -14,6 +14,35 @@
     </div>
 
     <div class="acard">
+        <div class="acard-head">IP 黑名单 <span class="sub">被封禁的 IP 无法上传;审核页/日志页可一键封禁</span></div>
+        <div class="acard-body">
+            <table class="table">
+                <thead><tr><th>IP</th><th>原因</th><th>封禁时间</th><th style="width:70px">操作</th></tr></thead>
+                <tbody>
+                    {foreach $ban_list as $b}
+                    <tr>
+                        <td>{$b['ip']|escape}</td>
+                        <td class="text-muted">{$b['reason']|escape}</td>
+                        <td class="text-muted">{$b['date']|escape}</td>
+                        <td><form method="post" action="moderation.php?type=unban_ip" style="display:inline">
+                            <input type="hidden" name="_csrf" value="{$csrf}">
+                            <input type="hidden" name="ip" value="{$b['ip']|escape}">
+                            <button type="submit" class="btn btn-xs btn-success">解封</button></form></td>
+                    </tr>
+                    {/foreach}
+                    {if count($ban_list)==0}<tr><td colspan="4" class="empty-tip">黑名单为空</td></tr>{/if}
+                </tbody>
+            </table>
+            <form method="post" action="moderation.php?type=ban_ip" class="inline-form" style="margin-top:12px">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="text" class="form-control" name="ip" placeholder="要封禁的 IP,例 1.2.3.4" required style="max-width:220px">
+                <input type="text" class="form-control" name="reason" placeholder="原因(可选)" style="max-width:220px">
+                <button type="submit" class="btn btn-danger btn-sm">封禁 IP</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="acard">
         <div class="acard-head">
             内容审核
             <span class="sub">自动检测调用 moderatecontent 接口(每轮12张),也可人工逐张判定</span>

@@ -98,7 +98,12 @@ function admin_verify_otp($code){
 	}
 	require_once SYSTEM_ROOT.'totp.php';
 	$secret=admin_get_otp_secret_by_id($pending['id']);
-	if ($secret==='' || !totp_verify($secret,$code)) {
+	$ok=($secret!=='' && totp_verify($secret,$code));
+	if (!$ok) {
+		//验证码不匹配时,尝试一次性备份码(验证器丢失时的救命通道)
+		$ok=otp_backup_verify($code);
+	}
+	if (!$ok) {
 		return false;
 	}
 	$row=$GLOBALS['db']->get('admin',['id','username'],['id'=>$pending['id']]);

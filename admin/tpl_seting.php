@@ -120,6 +120,11 @@
                     <input type="number" class="form-control" name="retention_archive" min="7" max="3650" value="{$config['web']['retention_archive']}" style="max-width:120px">
                     <span class="text-muted" style="font-size:13px;align-self:center">天 · data/archive/yyyymmdd.csv.gz,到期自动删除</span>
                 </div>
+                <div class="form-row">
+                    <label>回收站保留</label>
+                    <input type="number" class="form-control" name="trash_days" min="1" max="3650" value="{$trash_days}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">天 · 删除的图片先入回收站,期间可在图片管理页恢复,超期彻底删除</span>
+                </div>
                 <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
             </form>
         </div>
@@ -179,6 +184,21 @@
                     <input type="hidden" name="otp_action" value="cancel">
                     <button type="submit" class="btn btn-sm">取消</button>
                 </form>
+            {/if}
+            {if $otp_enabled}
+            <hr>
+            <p style="margin-top:0"><b>备份码</b>(验证器丢失时的救命通道,一次性使用):剩余 <b>{$otp_backup_left}</b> 个</p>
+            {if $otp_backup_show}
+            <div class="alert alert-warning"><b>请立即抄写保存,此列表只显示一次:</b><br>
+                <code style="font-size:14px;line-height:2">{foreach $otp_backup_show as $bc}{$bc} &nbsp;{/foreach}</code>
+            </div>
+            {/if}
+            <form action="seting.php" method="post" onsubmit="return confirm('重新生成备份码?旧备份码将全部失效')">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="hidden" name="action" value="otp">
+                <input type="hidden" name="otp_action" value="backup">
+                <button type="submit" class="btn btn-sm">重新生成备份码</button>
+            </form>
             {else}
                 <p style="margin-top:0;color:var(--muted)">开启后,登录需要 账号 + 密码 + 验证器动态码 三重验证,大幅提升后台安全性。</p>
                 <form action="seting.php" method="post">
@@ -196,6 +216,7 @@
         <div class="acard-body">
             <table class="info-table">
                 <tr><th>SQLite 数据库</th><td>{$storage['db_file']|escape} · {$storage['db_size']|escape}</td></tr>
+                <tr><th>回收站</th><td>{$trash['files']} 个文件 · 共 {format_size($trash['size'])} · 保留 {$trash_days} 天</td></tr>
                 <tr><th>归档备份</th><td>{$storage['archive_count']} 个压缩包 · 共 {$storage['archive_size_txt']|escape} · <code>{$storage['archive_dir']|escape}</code></td></tr>
                 <tr><th>cron 归档接口</th><td><code>admin/archive.php?type=cron&amp;who=鉴黄口令</code></td></tr>
             </table>

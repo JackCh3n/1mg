@@ -25,6 +25,11 @@ if (empty($_FILES['file']) || !is_array($_FILES['file']) || empty($_FILES['file'
 	json_exit(['code'=>110,'error'=>'没有选择文件']);
 }
 
+//IP黑名单拦截
+if (ip_banned(get_client_ip())) {
+	json_exit(['code'=>403,'error'=>'你的 IP 已被封禁,无法上传']);
+}
+
 //上传频率限制(按IP按小时,含失败尝试)
 if (!rate_limit_check()) {
 	json_exit(['code'=>429,'error'=>'上传太频繁,请稍后再试']);

@@ -36,10 +36,7 @@ if (isset($_POST['do']) && $_POST['do']==='yes') {
 		del_page('请重试', '<h2>页面已过期</h2><p class="text-muted"><a href="delete.php?token='.htmlspecialchars($token,ENT_QUOTES,'UTF-8').'">点此重试</a></p>');
 	}
 	$db->update('imginfo',['see'=>0],['id'=>$row['id']]);
-	$real_path=url_path($row['path']);
-	if (strpos($real_path,'i/')===0 && is_file(ROOT.$real_path)) {
-		@unlink(ROOT.$real_path);
-	}
+	trash_put($row['path']);
 	del_page('删除成功', '<h2>删除成功</h2><p class="text-muted">图片已从本站移除,感谢您的反馈</p><p><a class="btn btn-primary" href="/">返回首页</a></p>');
 }
 
