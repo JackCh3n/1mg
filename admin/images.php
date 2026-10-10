@@ -9,7 +9,7 @@ if (empty($_GET)) {
 $smarty->assign('nav_active','images');
 	$smarty->assign('admin_user',$_SESSION['admin_user']);
 	$smarty->assign('csrf',csrf_token());
-	$smarty->assign("page_jscode",'<script src="https://cdnjs.loli.net/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/fileinput.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/plugins/piexif.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/locales/zh.js" type="text/javascript"></script><script src="../view/admin/js/images.js" type="text/javascript"></script>');
+	$smarty->assign("page_jscode",'<script src="../view/vendor/jquery.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/fileinput.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/plugins/piexif.min.js" type="text/javascript"></script><script src="../view/bootstrap-fileinput-4.4.9/js/locales/zh.js" type="text/javascript"></script><script src="../view/admin/js/images.js" type="text/javascript"></script>');
 	$smarty->display('tpl_images.php');
 	exit();
 }

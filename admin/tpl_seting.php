@@ -161,7 +161,7 @@
     </div>
 
     {if $otp_setup}
-    <script src="https://cdnjs.loli.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="../view/vendor/qrcode.min.js"></script>
     <script>
     {literal}
     (function(){

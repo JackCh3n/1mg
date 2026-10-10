@@ -79,6 +79,10 @@ Windows 下双击 `dev.bat`(或命令行运行)即自动启动 PHP 内置服务�
 
 若执行 `composer update` 升级依赖,以上补丁会被覆盖,请改用 medoo >= 1.7 / smarty >= 3.1.42。
 
+## 本地化说明
+
+所有第三方 JS/CSS(jQuery、SparkMD5、qrcodejs、bootstrap-fileinput)均已本地化到 `view/` 目录,页面**零外部请求**,内网/离线环境可正常使用。
+
 ## 借鉴参考
 
 - 上传控件 —— [Bootstrap fileinput](https://github.com/kartik-v/bootstrap-fileinput)

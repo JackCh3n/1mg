@@ -144,10 +144,10 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
         </div>
     </footer>
 
-    <script src="https://cdnjs.loli.net/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="view/vendor/jquery.min.js"></script>
     <script src="view/bootstrap-fileinput-4.4.9/js/fileinput.min.js"></script><script src="view/bootstrap-fileinput-4.4.9/js/plugins/piexif.min.js" type="text/javascript"></script>
     <script src="view/bootstrap-fileinput-4.4.9/js/locales/zh.js"></script>
-    <script src="https://cdnjs.loli.net/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
+    <script src="view/vendor/spark-md5.min.js"></script>
     <script src="/view/index.js"></script>
 </body>
 </html>
