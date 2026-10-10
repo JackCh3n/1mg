@@ -62,16 +62,17 @@
     </div>
 
     <div class="acard">
-        <div class="acard-head">鉴黄 Key 池 <span class="sub">接口 moderatecontent.com · 每Key每月 2500 次 · 多Key自动轮询,超额/停用/无效自动跳过 · 用量月初自动清零</span></div>
+        <div class="acard-head">鉴黄 Key 池 <span class="sub">接口 moderatecontent.com · 每Key限额 约500次/天、2500次/月(本地统计估算) · 多Key自动轮询,超额/停用/无效自动跳过 · 用量每日/月初自动清零</span></div>
         <div class="acard-body">
             <table class="table">
                 <thead>
-                    <tr><th>Key</th><th>当月可用次数</th><th>状态</th><th>启用</th><th style="width:70px">操作</th></tr>
+                    <tr><th>Key</th><th>今日可用</th><th>当月可用次数</th><th>状态</th><th>启用</th><th style="width:70px">操作</th></tr>
                 </thead>
                 <tbody>
                     {foreach $mod_keys as $k}
                     <tr>
                         <td style="font-family:var(--mono);font-size:12.5px;word-break:break-all">{$k['key']|escape}</td>
+                        <td>{($k['used_day']==date('Y-m-d')) ? $day_limit - (int)$k['used_day_count'] : $day_limit} / {$day_limit}</td>
                         <td>{($k['used_month']==date('Y-m')) ? $mod_limit - (int)$k['used_count'] : $mod_limit} / {$mod_limit}</td>
                         <td>{if $k['status']=='invalid'}<span class="label label-danger">无效</span>{else}<span class="label label-success">正常</span>{/if}</td>
                         <td>

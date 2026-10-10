@@ -6,39 +6,45 @@
  * moderate_run() 供后台"内容审核"页与 system/imgLevel.php cron脚本共用
  */
 
-//moderatecontent 免费档每Key每月配额(用于本地用量统计)
+//moderatecontent 免费Key配额(官方未明示,按社区反馈与实际观察设定为日500/月2500,可按实际调整)
+define('MOD_DAILY_LIMIT', 500);
 define('MOD_MONTHLY_LIMIT', 2500);
 
 /**
- * 读取全部Key(空池时用配置里的img_level_key播种;月份翻转自动清零计数)
+ * 读取全部Key(空池时用配置里的img_level_key播种;日/月翻转自动清零计数)
  * @return array
  */
 function mod_keys_all(){
 	global $db, $config;
 	$month=date('Y-m');
-	//月份翻转:计数清零
+	$day=date('Y-m-d');
+	//月份翻转:月计数清零
 	$db->update('mod_keys',['used_month'=>$month,'used_count'=>0],['used_month[!]'=>$month]);
+	//日期翻转:日计数清零
+	$db->update('mod_keys',['used_day'=>$day,'used_day_count'=>0],['used_day[!]'=>$day]);
 	//空池播种:把设置里的默认Key收进来
 	$count=$db->count('mod_keys');
 	if (!$count && !empty($config['web']['img_level_key'])) {
-		$db->insert('mod_keys',['key'=>$config['web']['img_level_key'],'enabled'=>1,'status'=>'ok','used_month'=>$month,'used_count'=>0]);
+		$db->insert('mod_keys',['key'=>$config['web']['img_level_key'],'enabled'=>1,'status'=>'ok','used_month'=>$month,'used_count'=>0,'used_day'=>$day,'used_day_count'=>0]);
 	}
-	return $db->select('mod_keys',['id','key','enabled','status','used_month','used_count'],['ORDER'=>['id'=>'ASC']]);
+	return $db->select('mod_keys',['id','key','enabled','status','used_month','used_count','used_day','used_day_count'],['ORDER'=>['id'=>'ASC']]);
 }
 
 /**
- * 从Key池取下一个可用Key(轮询:启用且当月有余量,无效Key跳过)
+ * 从Key池取下一个可用Key(轮询:启用 且 日/月配额均有余量 且 非无效Key)
  * @return string|null
  */
 function mod_keys_pick(){
 	global $db;
 	$month=date('Y-m');
+	$day=date('Y-m-d');
 	foreach (mod_keys_all() as $k) {
 		if (empty($k['enabled']) || $k['status']==='invalid') {
 			continue;
 		}
-		$used=($k['used_month']===$month)?(int)$k['used_count']:0;
-		if ($used>=MOD_MONTHLY_LIMIT) {
+		$usedMonth=($k['used_month']===$month)?(int)$k['used_count']:0;
+		$usedDay=($k['used_day']===$day)?(int)$k['used_day_count']:0;
+		if ($usedMonth>=MOD_MONTHLY_LIMIT || $usedDay>=MOD_DAILY_LIMIT) {
 			continue;
 		}
 		return $k['key'];
@@ -47,15 +53,20 @@ function mod_keys_pick(){
 }
 
 /**
- * 记录一次Key使用(当月计数+1)
+ * 记录一次Key使用(当日/当月计数各+1)
  * @param string $key
  */
 function mod_key_use($key){
 	global $db;
 	$month=date('Y-m');
-	$db->pdo->prepare("INSERT INTO mod_keys (key, used_month, used_count) VALUES (?, ?, 1)
-		ON CONFLICT(key) DO UPDATE SET used_count = CASE WHEN used_month = ? THEN used_count + 1 ELSE 1 END, used_month = ?")
-		->execute([$key, $month, $month, $month]);
+	$day=date('Y-m-d');
+	$db->pdo->prepare("INSERT INTO mod_keys (key, used_month, used_count, used_day, used_day_count)
+		VALUES (?, ?, 1, ?, 1)
+		ON CONFLICT(key) DO UPDATE SET
+			used_count = CASE WHEN used_month = ? THEN used_count + 1 ELSE 1 END,
+			used_day = ?,
+			used_day_count = CASE WHEN used_day = ? THEN used_day_count + 1 ELSE 1 END")
+		->execute([$key, $month, $day, $month, $day, $day]);
 }
 
 /**

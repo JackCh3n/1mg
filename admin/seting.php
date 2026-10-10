@@ -261,4 +261,5 @@ if ($otp_setup!=='') {
 $smarty->assign('storage',$storage);
 $smarty->assign('mod_keys',$mod_keys);
 $smarty->assign('mod_limit',MOD_MONTHLY_LIMIT);
+$smarty->assign('day_limit',MOD_DAILY_LIMIT);
 $smarty->display('tpl_seting.php');
