@@ -31,7 +31,7 @@ $(function () {
         autoOrientImage: false,
         showZoom: false,
         showCancel: false,
-        fileActionSettings: { showZoom: false, showDrag: false }
+        fileActionSettings: { showZoom: false, showDrag: false, removeIcon: '删除', uploadIcon: '上传', removeTitle: '删除这张图片', uploadTitle: '上传这张图片' }
     });
 
     function loadRecent() {

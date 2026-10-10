@@ -77,7 +77,7 @@ $(function () {
         autoOrientImage: false,
         showZoom: false,
         showCancel: false,
-        fileActionSettings: { showZoom: false, showDrag: false }
+        fileActionSettings: { showZoom: false, showDrag: false, removeIcon: '删除', uploadIcon: '上传', removeTitle: '删除这张图片', uploadTitle: '上传这张图片' }
     });
 
     /* ---------- 粘贴上传 + 全页拖拽 ---------- */
@@ -262,7 +262,7 @@ $(function () {
         autoOrientImage: false,
                 showZoom: false,
                 showCancel: false,
-                fileActionSettings: { showZoom: false, showDrag: false }
+                fileActionSettings: { showZoom: false, showDrag: false, removeIcon: '删除', uploadIcon: '上传', removeTitle: '删除这张图片', uploadTitle: '上传这张图片' }
             }, data));
             var n = (data.initialPreview || []).length;
             var html = '<div class="card"><h2 style="margin:0 0 12px">今日上传</h2>';
