@@ -96,6 +96,16 @@ function admin_verify_otp($code){
 		unset($_SESSION['otp_pending']);
 		return false;
 	}
+	//防爆破:两步验证失败计数,连续8次失败作废本轮两步状态,需重新输入账号密码
+	if (!isset($pending['tries'])) {
+		$pending['tries']=0;
+	}
+	$pending['tries']++;
+	$_SESSION['otp_pending']=$pending;
+	if ($pending['tries']>8) {
+		unset($_SESSION['otp_pending']);
+		return false;
+	}
 	require_once SYSTEM_ROOT.'totp.php';
 	$secret=admin_get_otp_secret_by_id($pending['id']);
 	$ok=($secret!=='' && totp_verify($secret,$code));

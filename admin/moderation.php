@@ -25,8 +25,8 @@ if (isset($_GET['type']) && $_GET['type']==='testkey' && $_SERVER['REQUEST_METHO
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 	curl_setopt($curl, CURLOPT_TIMEOUT, 12);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
 	$resp=curl_exec($curl);
 	$err=curl_error($curl);
 	curl_close($curl);

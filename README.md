@@ -31,6 +31,16 @@
 
 Windows 下双击 `dev.bat`(或命令行运行)即自动启动 PHP 内置服务器并打开浏览器;加参数 `--no-browser` 不打开浏览器。中文提示为 GBK 编码,适配中文 Windows 的 cmd。
 
+## PHP 版本安全告警
+
+本机开发环境 PHP 8.2.9 发布于 2023-08,晚于其后的多个安全修复未包含:
+
+- **CVE-2024-4577 / CVE-2024-5458 / CVE-2024-5585**(Windows php-cgi 参数注入,曾在野利用):仅在 Windows + php-cgi 部署时可利用。本项目 `dev.bat` 使用内置服务器(`php -S`),不受影响;**切勿**把本项目部署在 Windows php-cgi 下,或升级 PHP ≥ 8.2.20。
+- CVE-2025-5068 等过滤器/流相关修复:升级到 8.2 最新(≥8.2.28)或 8.3+ 即可覆盖。
+- 2026 年新披露的 FPM/SOAP/OpenSSL/streams 相关 CVE(见 php.net ChangeLog)同样随新版修复。
+
+**生产部署建议:Linux + PHP ≥ 8.2.28(或 8.3/8.4 最新),mod_php 或 fpm 均可。** Smarty 3.1.32 的已知 CVE(如 CVE-2021-26120)要求攻击者可控模板内容才可利用,本项目模板全部为受信文件且输出转义,不受影响;可升级 Smarty ≥ 3.1.39 根治。
+
 ## 安装
 
 1. 需要 PHP 8.x,启用 pdo_sqlite / gd / zlib / openssl / curl 扩展

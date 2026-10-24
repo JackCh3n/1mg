@@ -115,6 +115,7 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 	//叠加水印(配置了水印文字时)
 	if ($wm_text!=='') {
 		watermark_apply($img, $wm_text, $wm_font);
+		$compress=1;//带水印必须保留重编码结果,禁用大小回退
 	}
 
 	//重编码到目标路径
