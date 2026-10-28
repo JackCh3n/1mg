@@ -29,11 +29,11 @@
             <input type="hidden" name="_csrf" value="{$csrf}">
             <div class="form-group">
                 <label for="username">用户名</label>
-                <input type="text" class="form-control" id="username" name="username" placeholder="用户名" required autofocus>
+                <input type="text" class="form-control" id="username" name="username" placeholder="用户名" autocomplete="username" required autofocus>
             </div>
             <div class="form-group">
                 <label for="password">密码</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="密码" required>
+                <input type="password" class="form-control" id="password" name="password" placeholder="密码" autocomplete="current-password" required>
             </div>
             <button type="submit" class="btn btn-primary btn-block">下一步</button>
         </form>

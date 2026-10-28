@@ -55,8 +55,8 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 	<div class="login-box">
 		<h2><span class="logo-dot"></span><?php echo $e_title; ?></h2>
 		<div class="tabs" style="margin-bottom:18px">
-			<a href="login.php" style="text-decoration:none"><button type="button" class="<?php echo $mode==='login'?'active':''; ?>">登录</button></a>
-			<a href="login.php?mode=register" style="text-decoration:none"><button type="button" class="<?php echo $mode==='register'?'active':''; ?>">注册</button></a>
+			<a href="login.php" class="<?php echo $mode==='login'?'active':''; ?>" style="text-decoration:none">登录</a>
+			<a href="login.php?mode=register" class="<?php echo $mode==='register'?'active':''; ?>" style="text-decoration:none">注册</a>
 		</div>
 		<?php if ($e_error): ?><div class="alert alert-danger"><?php echo $e_error; ?></div><?php endif; ?>
 		<form method="post" action="login.php<?php echo $mode==='register'?'?mode=register':''; ?>">
@@ -64,11 +64,11 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 			<input type="hidden" name="mode" value="<?php echo $mode; ?>">
 			<div class="form-group">
 				<label for="username">用户名</label>
-				<input type="text" class="form-control" id="username" name="username" placeholder="3-32位字母/数字/下划线" required autofocus>
+				<input type="text" class="form-control" id="username" name="username" placeholder="3-32位字母/数字/下划线" autocomplete="username" required autofocus>
 			</div>
 			<div class="form-group">
 				<label for="password">密码</label>
-				<input type="password" class="form-control" id="password" name="password" placeholder="至少6位" required>
+				<input type="password" class="form-control" id="password" name="password" placeholder="至少6位" autocomplete="<?php echo $mode==='register'?'new-password':'current-password'; ?>" required>
 			</div>
 			<?php if ($mode==='register'): ?>
 			<div class="form-group">

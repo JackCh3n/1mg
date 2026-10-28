@@ -135,6 +135,12 @@ $(function () {
         addFiles(e.dataTransfer.files);
     });
 
+    //文件从队列移除后清理对应秒传状态
+    $('#file').on('fileremoved fileclear filesuccessremove', function (event, previewId) {
+        if (previewId && md5Map && md5Map[previewId]) { delete md5Map[previewId]; return; }
+        if (event.type === 'fileclear') { for (var k in md5Map) { delete md5Map[k]; } }
+    });
+
     //秒传状态: previewId -> {md5, state: idle|checking|new|exists, url}
     //选择文件时只算md5(不发请求);秒传预检推迟到点击上传时执行
     var md5Map = {};
