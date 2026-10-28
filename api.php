@@ -15,8 +15,8 @@ $need_token = isset($config['web']['api_token']) && trim((string)$config['web'][
     <meta charset="UTF-8"/>
     <title><?php echo $e_title; ?> · API 文档</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="view/site.css" rel="stylesheet">
-    <script src="view/theme.js"></script>
+    <link href="view/site.css?v=20261029" rel="stylesheet">
+    <script src="view/theme.js?v=20261029"></script>
     <style>
     .api-doc h2{margin-top:34px}
     .api-doc table{width:100%;border-collapse:collapse;font-size:14px}

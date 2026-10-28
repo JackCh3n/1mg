@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{$title|escape} - 后台管理</title>
-    <link href="../view/site.css" rel="stylesheet">
-    <link href="../view/admin/admin.css" rel="stylesheet">
-    <script src="../view/theme.js"></script>
+    <link href="../view/site.css?v=20261029" rel="stylesheet">
+    <link href="../view/admin/admin.css?v=20261029" rel="stylesheet">
+    <script src="../view/theme.js?v=20261029"></script>
 </head>
 <body class="admin-body">
     <aside class="side">

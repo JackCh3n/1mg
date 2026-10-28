@@ -21,8 +21,8 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
     <title><?php echo $e_title; ?> · 简单免费的图床</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="<?php echo $e_title; ?> - 简单·免费的图床服务,支持拖拽上传、自动压缩、秒传去重">
-    <link href="view/site.css" rel="stylesheet">
-    <script src="view/theme.js"></script>
+    <link href="view/site.css?v=20261029" rel="stylesheet">
+    <script src="view/theme.js?v=20261029"></script>
 </head>
 <body>
     <nav class="site-nav">
@@ -162,6 +162,6 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
     <script src="view/bootstrap-fileinput-4.4.9/js/fileinput.min.js"></script><script src="view/bootstrap-fileinput-4.4.9/js/plugins/piexif.min.js" type="text/javascript"></script>
     <script src="view/bootstrap-fileinput-4.4.9/js/locales/zh.js"></script>
     <script src="view/vendor/spark-md5.min.js"></script>
-    <script src="/view/index.js"></script>
+    <script src="/view/index.js?v=20261029"></script>
 </body>
 </html>

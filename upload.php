@@ -98,12 +98,16 @@ if (!empty($db_md5)) {
 			@unlink($file['tmp_name']);
 			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].$db_path,'md5'=>$file_md5,'delete'=>$config['web']['cdn'].'delete.php?token='.urlencode($db_md5['delete_token']),'reused'=>true]]);
 		}else{
-			//记录存在但文件丢失,用本次上传补回文件
+			//记录存在但文件丢失,用本次上传按记录扩展名重新转码补回(直接move会造成内容与扩展名不符)
 			$dir=ROOT.dirname($db_path);
 			if (!is_dir($dir) && !@mkdir($dir,0755,true)) {
 				json_exit(['code'=>110,'error'=>'目录创建失败']);
 			}
-			if (!@move_uploaded_file($file['tmp_name'],ROOT.$db_path) && !@rename($file['tmp_name'],ROOT.$db_path)) {
+			$rec_ext=strtolower(pathinfo($db_path,PATHINFO_EXTENSION));
+			$base_noext=ROOT.$db_path;
+			$base_noext=substr($base_noext,0,-(strlen($rec_ext)+1));
+			$re=compress_image($file['tmp_name'],$base_noext,$rec_ext,false);
+			if (!$re['ok'] || !is_file(ROOT.$db_path)) {
 				json_exit(['code'=>110,'error'=>'文件保存失败']);
 			}
 			json_exit(['code'=>'success','data'=>['url'=>$config['web']['cdn'].$db_path,'md5'=>$file_md5,'delete'=>$config['web']['cdn'].'delete.php?token='.urlencode($db_md5['delete_token']),'reused'=>true]]);

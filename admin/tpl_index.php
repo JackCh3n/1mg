@@ -80,7 +80,7 @@
         <div class="acard-body">
             <p class="text-muted" style="margin-top:0">已同步 <b>{$b2_stat['synced']}</b> 张 · {format_size($b2_stat['synced_size'])} · 待同步 <b>{$b2_stat['pending']}</b> 张 · 累计上传 {$b2_stat['uploaded_total']} / 删除 {$b2_stat['deleted_total']} · 最近同步: {$b2_stat['last_run']|default:'从未'}</p>
             {if $b2_stat['last_error']}<div class="alert alert-danger">{$b2_stat['last_error']|escape}</div>{/if}
-            {if $b2_domain}<p class="text-muted" style="font-size:12.5px">镜像域名: <a href="{$b2_domain}" target="_blank" rel="noopener">{$b2_domain}</a>(文件路径与本地一致)</p>{/if}
+            {if $b2_domain}<p class="text-muted" style="font-size:12.5px">镜像域名: <a href="{$b2_domain|escape}" target="_blank" rel="noopener">{$b2_domain|escape}</a>(文件路径与本地一致)</p>{/if}
         </div>
     </div>
 {/if}
@@ -92,7 +92,7 @@
         <div class="acard-body">
             <p class="text-muted" style="margin-top:0">已同步 <b>{$wd_stat['synced']}</b> 张 · {format_size($wd_stat['synced_size'])} · 待同步 <b>{$wd_stat['pending']}</b> 张 · 累计上传 {$wd_stat['uploaded_total']} / 删除 {$wd_stat['deleted_total']} · 最近同步: {$wd_stat['last_run']|default:'从未'}</p>
             {if $wd_stat['last_error']}<div class="alert alert-danger">{$wd_stat['last_error']|escape}</div>{/if}
-            {if $wd_domain}<p class="text-muted" style="font-size:12.5px">镜像域名: <a href="{$wd_domain}" target="_blank" rel="noopener">{$wd_domain}</a>(文件路径与本地一致)</p>{/if}
+            {if $wd_domain}<p class="text-muted" style="font-size:12.5px">镜像域名: <a href="{$wd_domain|escape}" target="_blank" rel="noopener">{$wd_domain|escape}</a>(文件路径与本地一致)</p>{/if}
         </div>
     </div>
 {/if}

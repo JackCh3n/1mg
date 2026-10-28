@@ -532,6 +532,15 @@ textarea.form-control { resize: vertical; }
 	.hero { padding: 34px 0 20px; }
 }
 
+/* 移动端: 上传按钮改单列堆叠,避免窄屏挤压 */
+@media (max-width: 640px) {
+	.file-input { grid-template-columns: 1fr; }
+	.file-input > * { grid-column: 1 / -1; }
+	.file-input > .btn { width: 100%; margin-right: 0; }
+	.file-input > .btn-file { order: -1; }
+}
+
+
 /* 全页拖拽提示 */
 body.drag-hint::after {
 	content: '松开即可上传图片';

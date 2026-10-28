@@ -96,12 +96,6 @@ if (!empty($_POST)) {
 					'since_year'=>$since_year,
 					'user_quota_mb'=>$user_quota_mb,
 					'user_daily_files'=>$user_daily_files,
-					'img_max_side'=>$img_max_side,
-					'img_jpeg_quality'=>$img_jpeg_quality,
-					'img_webp_quality'=>$img_webp_quality,
-					'watermark_text'=>$watermark_text,
-					'watermark_font'=>$watermark_font,
-					'ttl_enabled'=>$ttl_enabled,
 					'webp_enabled'=>$webp,
 					'api_token'=>$api_token,
 				]])) {

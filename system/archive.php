@@ -56,7 +56,7 @@ function archive_run($online_days, $archive_days){
 
 	$cutoff=date('Y-m-d 00:00:00', strtotime('-'.(int)$online_days.' days'));
 	$rows=$db->select('imginfo',
-		['id','path','ip','ua','date','dir','compress','level','see','md5','name','size'],
+		['id','path','ip','ua','date','dir','compress','level','see','md5','name','size','delete_token','user_id','expire_at'],
 		['date[<]'=>$cutoff,'ORDER'=>['date'=>'ASC']]);
 
 	$archived=0;
@@ -80,16 +80,20 @@ function archive_run($online_days, $archive_days){
 			//生成csv片段
 			$tmp=fopen('php://temp','r+');
 			foreach ($day_rows as $r) {
-				fputcsv($tmp, [$r['id'],$r['path'],$r['ip'],$r['ua'],$r['date'],$r['dir'],$r['compress'],$r['level'],$r['see'],$r['md5'],$r['name'],$r['size']]);
+				//v2列: 追加 delete_token/user_id/expire_at(导入器按行宽兼容)
+				fputcsv($tmp, [$r['id'],$r['path'],$r['ip'],$r['ua'],$r['date'],$r['dir'],$r['compress'],$r['level'],$r['see'],$r['md5'],$r['name'],$r['size'],$r['delete_token'],$r['user_id'],$r['expire_at']]);
 			}
 			rewind($tmp);
 			$csv=stream_get_contents($tmp);
 			fclose($tmp);
 			//原子写入
 			$gz=gzencode($existing.$csv, 9);
+			if ($gz===false) { throw new Exception('gzencode 失败'); }
 			$tmp_file=$file.'.tmp';
-			file_put_contents($tmp_file,$gz,LOCK_EX);
-			rename($tmp_file,$file);
+			if (file_put_contents($tmp_file,$gz,LOCK_EX)===false || !rename($tmp_file,$file)) {
+				@unlink($tmp_file);
+				throw new Exception('归档文件写入失败: '.$file);
+			}
 			$archived+=count($day_rows);
 			$meta['files'][$yyyymmdd]=(isset($meta['files'][$yyyymmdd])?(int)$meta['files'][$yyyymmdd]:0)+count($day_rows);
 		}

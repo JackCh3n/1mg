@@ -138,7 +138,8 @@ function wd_ensure_dir($remote_path){
 		}
 		$cur.=($cur===''?'':'/').$p;
 		$r=wd_request('MKCOL', $c['url'].'/'.$cur.'/');
-		if (!in_array($r['code'],[201,200,405,301],true) && $r['err']!=='') {
+		//201/200=创建成功,405=已存在,301=服务器重定向(尾斜杠),其余视为失败
+		if (!in_array($r['code'],[201,200,405,301],true)) {
 			return false;
 		}
 	}

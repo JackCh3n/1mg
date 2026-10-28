@@ -47,9 +47,13 @@ if ($type==='import') {
 		$cols=str_getcsv($line);
 		if (count($cols)<12) { continue; }
 		list($oid,$opath,$oip,$oua,$odate,$odir,$ocompress,$olevel,$osee,$omd5,$oname,$osize)=$cols;
+		//v2行宽15列: 追加 delete_token/user_id/expire_at
+		$otoken=(count($cols)>12 && $cols[12]!=='')?$cols[12]:random_token();
+		$ouser=(count($cols)>13)?(int)$cols[13]:0;
+		$oexpire=(count($cols)>14)?$cols[14]:'';
 		if ($omd5!=='' && $db->count('imginfo',['md5'=>$omd5])>0) { $skipped++; continue; }
 		try {
-			$db->insert('imginfo',['path'=>$opath,'ip'=>$oip,'ua'=>$oua,'date'=>$odate,'dir'=>$odir,'compress'=>(int)$ocompress,'level'=>(int)$olevel,'see'=>(int)$osee,'md5'=>$omd5,'name'=>$oname,'size'=>$osize]);
+			$db->insert('imginfo',['path'=>$opath,'ip'=>$oip,'ua'=>$oua,'date'=>$odate,'dir'=>$odir,'compress'=>(int)$ocompress,'level'=>(int)$olevel,'see'=>(int)$osee,'md5'=>$omd5,'name'=>$oname,'size'=>$osize,'delete_token'=>$otoken,'user_id'=>$ouser,'expire_at'=>$oexpire]);
 			$imported++;
 		} catch (Exception $e) { $skipped++; }
 	}

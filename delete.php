@@ -14,7 +14,7 @@ function del_page($title, $body){
 	header('Content-Type: text/html; charset=utf-8');
 	echo '<!DOCTYPE html><html lang="zh-CN" data-default-skin="light"><head><meta charset="utf-8">'
 		.'<meta name="viewport" content="width=device-width, initial-scale=1">'
-		.'<title>'.$title.'</title><link href="view/site.css" rel="stylesheet"><script src="view/theme.js"></script></head>'
+		.'<title>'.$title.'</title><link href="view/site.css?v=20261029" rel="stylesheet"><script src="view/theme.js?v=20261029"></script></head>'
 		.'<body><div class="login-wrap"><div class="login-box" style="text-align:center">'.$body.'</div></div></body></html>';
 	exit();
 }

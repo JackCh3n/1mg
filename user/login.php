@@ -47,8 +47,8 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php echo $e_title; ?> · <?php echo $mode==='register'?'注册':'登录'; ?></title>
-	<link href="../view/site.css" rel="stylesheet">
-	<script src="../view/theme.js"></script>
+	<link href="../view/site.css?v=20261029" rel="stylesheet">
+	<script src="../view/theme.js?v=20261029"></script>
 </head>
 <body>
 <div class="login-wrap">

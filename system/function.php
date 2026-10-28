@@ -91,13 +91,25 @@ function bbr(){
  * @param  string $n   默认加密,非 en解密
  * @return string      返回加密或解密的字符串
  */
+define('ENC_KEY', 'http://nobige.cn');
+define('ENC_LEGACY_IV', 'MyQNum1272016935');
 function encdec_openssl($str,$n='en'){
-
+	//v2格式: base64('v2' + IV(16字节) + 密文),每次加密用随机IV
+	//v1旧格式: base64(静态IV密文),解密时自动兼容
 	if ($n=='en') {
-		return base64_encode(openssl_encrypt ($str,'AES-128-CBC','http://nobige.cn',OPENSSL_RAW_DATA,'MyQNum1272016935'));
-	}else{
-		return openssl_decrypt(base64_decode($str),'AES-128-CBC','http://nobige.cn',OPENSSL_RAW_DATA,'MyQNum1272016935');
+		$iv=random_bytes(16);
+		$ct=openssl_encrypt($str,'AES-128-CBC',ENC_KEY,OPENSSL_RAW_DATA,$iv);
+		if ($ct===false) { return false; }
+		return base64_encode('v2'.$iv.$ct);
 	}
+	$raw=base64_decode((string)$str,true);
+	if ($raw===false) { return false; }
+	if (substr($raw,0,2)==='v2' && strlen($raw)>18) {
+		$iv=substr($raw,2,16);
+		$ct=substr($raw,18);
+		return openssl_decrypt($ct,'AES-128-CBC',ENC_KEY,OPENSSL_RAW_DATA,$iv);
+	}
+	return openssl_decrypt($raw,'AES-128-CBC',ENC_KEY,OPENSSL_RAW_DATA,ENC_LEGACY_IV);
 }
 
 /**
