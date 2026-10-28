@@ -7,6 +7,7 @@ require SYSTEM_ROOT.'auth.php';
 admin_require_login();
 require_once SYSTEM_ROOT.'archive.php';
 require_once SYSTEM_ROOT.'b2.php';
+require_once SYSTEM_ROOT.'webdav.php';
 
 //到点自动归档(6小时一次),失败静默
 try {
@@ -37,6 +38,18 @@ if (isset($_GET['action']) && $_GET['action']=='b2_sync' && isset($_GET['token']
 		exit();
 	}
 	$b2_msg='非法请求';
+}
+
+//手动 WebDAV 同步
+$wd_msg='';
+if (isset($_GET['action']) && $_GET['action']=='wd_sync' && isset($_GET['token'])) {
+	if (hash_equals(csrf_token(),(string)$_GET['token'])) {
+		$wr=wd_sync_run();
+		admin_log('wd_sync','up='.$wr['uploaded'].',del='.$wr['deleted'].',fail='.$wr['failed']);
+		header('Location: index.php?wd='.($wr['ok']?'1':'0'));
+		exit();
+	}
+	$wd_msg='非法请求';
 }
 
 //孤儿文件清理
@@ -123,6 +136,10 @@ $smarty->assign('b2_stat',b2_stats());
 $smarty->assign('b2_msg',$b2_msg.(isset($_GET['b2'])?(($_GET['b2']==='1')?'B2 同步完成一轮':'B2 同步失败,请到设置页查看错误'):''));
 $smarty->assign('b2_domain',rtrim((string)($config['web']['b2_domain'] ?? ''),'/'));
 $smarty->assign('b2_conf_on',!empty($config['web']['b2_enabled']));
+$smarty->assign('wd_stat',wd_stats());
+$smarty->assign('wd_msg',$wd_msg.(isset($_GET['wd'])?(($_GET['wd']==='1')?'WebDAV 同步完成一轮':'WebDAV 同步失败,请到设置页查看错误'):''));
+$smarty->assign('wd_domain',rtrim((string)($config['web']['wd_domain'] ?? ''),'/'));
+$smarty->assign('wd_conf_on',!empty($config['web']['wd_enabled']));
 $smarty->assign('orphan_msg',$orphan_msg);
 $smarty->assign('disk_size',format_size($usage['size']));
 $smarty->assign('disk_files',$usage['files']);

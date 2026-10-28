@@ -51,6 +51,14 @@ $config=[
 		'b2_domain'=>'',        //B2自定义域名/友好URL(仅用于展示链接,如 https://cdn.example.com)
 		'b2_delete_remote'=>1,  //本站删除时同步删除B2副本(0=远端保留)
 		'b2_sync_batch'=>5,     //每轮同步上传数量(删除墓碑同额度)
+		//WebDAV 云存储同步(日本免费空间等)
+		'wd_enabled'=>0,        //1=启用定时同步
+		'wd_url'=>'',           //WebDAV 目录地址,如 https://dav.example.jp/1mg
+		'wd_user'=>'',
+		'wd_pass'=>'',
+		'wd_domain'=>'',        //对外访问域名(仅展示,如 https://img.example.jp/1mg)
+		'wd_delete_remote'=>1,  //本站删除时同步删除远端副本
+		'wd_sync_batch'=>5,     //每轮同步数量
 		//文件有效期(TTL)
 		'ttl_enabled'=>0,        //1=上传时允许选择有效期
 		//用户配额(0=不限制)

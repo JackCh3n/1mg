@@ -69,6 +69,43 @@
     </div>
 
     <div class="acard">
+        <div class="acard-head">WebDAV 云存储同步 <span class="sub">标准 WebDAV 服务(日本免费空间等) · 定时上传备份,支持删除同步与统计</span></div>
+        <div class="acard-body">
+            {if $wd['last_error']}<div class="alert alert-danger">最近一次同步出错: {$wd['last_error']|escape}</div>{/if}
+            <p class="text-muted" style="margin-top:0">当前: {if $wd['enabled']}<span class="label label-success">已启用</span>{else}<span class="label label-danger">未启用</span>{/if}
+                已同步 <b>{$wd['synced']}</b> 张({format_size($wd['synced_size'])}) · 待同步 <b>{$wd['pending']}</b> 张 · 最近同步: {$wd['last_run']|default:'从未'} · 累计上传 {$wd['uploaded_total']} / 删除 {$wd['deleted_total']}</p>
+            <form action="seting.php" method="post">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="hidden" name="action" value="wd">
+                <div class="form-row">
+                    <label>启用同步</label>
+                    <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text)">
+                        <input type="checkbox" name="wd_enabled" value="1"{if $config['web']['wd_enabled']} checked{/if} style="width:17px;height:17px">
+                        定时把图片上传到 WebDAV(随归档任务每6小时执行,也可立即同步)
+                    </label></div>
+                <div class="form-row"><label>WebDAV 地址</label>
+                    <input type="text" class="form-control" id="wd_url" name="wd_url" value="{$config['web']['wd_url']|escape}" style="max-width:360px;font-family:var(--mono)" placeholder="https://dav.example.jp/1mg">
+                    <button type="button" class="btn btn-sm" id="wd-test-btn">测试连接</button>
+                    <span class="help-block" id="wd-test-result" style="margin:0 0 0 10px;align-self:center"></span></div>
+                <div class="form-row"><label>用户名</label>
+                    <input type="text" class="form-control" id="wd_user" name="wd_user" value="{$config['web']['wd_user']|escape}" style="max-width:220px"></div>
+                <div class="form-row"><label>密码</label>
+                    <input type="password" class="form-control" id="wd_pass" name="wd_pass" value="{$config['web']['wd_pass']|escape}" style="max-width:220px">
+                    <span class="text-muted" style="font-size:12.5px;align-self:center">只保存在服务端配置文件,不随 git 提交</span></div>
+                <div class="form-row"><label>对外域名</label>
+                    <input type="text" class="form-control" name="wd_domain" value="{$config['web']['wd_domain']|escape}" style="max-width:320px" placeholder="https://img.example.jp/1mg">
+                    <span class="text-muted" style="font-size:12.5px;align-self:center">仅作展示;文件路径与本站一致</span></div>
+                <div class="form-row"><label>每轮数量</label>
+                    <input type="number" class="form-control" name="wd_sync_batch" min="1" max="100" value="{$config['web']['wd_sync_batch']}" style="max-width:100px">
+                    <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text);margin-left:16px">
+                        <input type="checkbox" name="wd_delete_remote" value="1"{if $config['web']['wd_delete_remote']} checked{/if} style="width:17px;height:17px">
+                        本站删除时同步删除 WebDAV 副本
+                    </label></div>
+                <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
+            </form>
+        </div>
+    </div>
+    <div class="acard">
         <div class="acard-head">B2 云存储同步 <span class="sub">Backblaze B2 · 定时把图片上传到 B2 备份,支持删除同步与用量统计</span></div>
         <div class="acard-body">
             {if $b2['last_error']}<div class="alert alert-danger">最近一次同步出错: {$b2['last_error']|escape}</div>{/if}
@@ -402,6 +439,30 @@
             +"&action=b2_test"
             +"&b2_key_id="+encodeURIComponent(document.getElementById("b2_key_id").value)
             +"&b2_app_key="+encodeURIComponent(document.getElementById("b2_app_key").value);
+        btn.disabled=true; btn.textContent="测试中…";
+        out.textContent="";
+        fetch("seting.php",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body})
+        .then(function(r){return r.json();})
+        .then(function(d){ out.textContent=d.msg; out.style.color=d.ok?"var(--ok)":"var(--danger)"; })
+        .catch(function(){ out.textContent="请求失败"; out.style.color="var(--danger)"; })
+        .finally(function(){ btn.disabled=false; btn.textContent="测试连接"; });
+    });
+})();
+{/literal}
+</script>
+<script>
+{literal}
+(function(){
+    var btn=document.getElementById("wd-test-btn");
+    if(!btn) return;
+    btn.addEventListener("click", function(){
+        var out=document.getElementById("wd-test-result");
+        var csrf=document.querySelector("input[name=_csrf]").value;
+        var body="_csrf="+encodeURIComponent(csrf)
+            +"&action=wd_test"
+            +"&wd_url="+encodeURIComponent(document.getElementById("wd_url").value)
+            +"&wd_user="+encodeURIComponent(document.getElementById("wd_user").value)
+            +"&wd_pass="+encodeURIComponent(document.getElementById("wd_pass").value);
         btn.disabled=true; btn.textContent="测试中…";
         out.textContent="";
         fetch("seting.php",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body})

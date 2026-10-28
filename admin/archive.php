@@ -99,7 +99,17 @@ if ($type==='cron') {
 	} catch (Exception $e) {
 		$b2_result=['ok'=>false,'error'=>$e->getMessage()];
 	}
-	exit(json_encode(['code'=>'success','data'=>['archive'=>$result,'b2'=>$b2_result]], JSON_UNESCAPED_UNICODE));
+	//顺带执行一轮WebDAV同步
+	$wd_result=null;
+	try {
+		require_once SYSTEM_ROOT.'webdav.php';
+		if (wd_ready()) {
+			$wd_result=wd_sync_run();
+		}
+	} catch (Exception $e) {
+		$wd_result=['ok'=>false,'error'=>$e->getMessage()];
+	}
+	exit(json_encode(['code'=>'success','data'=>['archive'=>$result,'b2'=>$b2_result,'webdav'=>$wd_result]], JSON_UNESCAPED_UNICODE));
 }
 
 //其他访问回仪表盘

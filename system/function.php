@@ -564,7 +564,8 @@ function db_init_sqlite($db){
 		delete_token TEXT DEFAULT '',
 		user_id INTEGER DEFAULT 0,
 		expire_at TEXT DEFAULT '',
-		b2_file_id TEXT DEFAULT ''
+		b2_file_id TEXT DEFAULT '',
+		wd_path TEXT DEFAULT ''
 	)");
 	$pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
@@ -573,6 +574,7 @@ function db_init_sqlite($db){
 	//老库补列: 图片有效期 / B2文件ID
 	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN expire_at TEXT DEFAULT ''"); } catch (Exception $e) {}
 	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN b2_file_id TEXT DEFAULT ''"); } catch (Exception $e) {}
+	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN wd_path TEXT DEFAULT ''"); } catch (Exception $e) {}
 	//注册用户
 	$pdo->exec("CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

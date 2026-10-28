@@ -113,6 +113,39 @@ if (!empty($_POST)) {
 			}
 		}
 
+		//WebDAV 云存储同步(独立表单)
+		if ($action==='wd') {
+			$wd_enabled=isset($_POST['wd_enabled'])?1:0;
+			$wd_url=trim((string)$_POST['wd_url']);
+			$wd_user=trim((string)$_POST['wd_user']);
+			$wd_pass=(string)$_POST['wd_pass'];
+			$wd_domain=trim((string)$_POST['wd_domain']);
+			$wd_delete_remote=isset($_POST['wd_delete_remote'])?1:0;
+			$wd_sync_batch=(int)$_POST['wd_sync_batch'];
+			if ($wd_url!=='' && (!filter_var($wd_url,FILTER_VALIDATE_URL) || !preg_match('#^https?://#i',$wd_url))) {
+				$save_error='WebDAV 地址格式不正确(需 http(s):// 开头)';
+			}elseif ($wd_domain!=='' && (!filter_var($wd_domain,FILTER_VALIDATE_URL) || !preg_match('#^https?://#i',$wd_domain))) {
+				$save_error='对外访问域名格式不正确';
+			}elseif ($wd_sync_batch<1 || $wd_sync_batch>100) {
+				$save_error='每轮同步数量需在1-100之间';
+			}else{
+				if (save_user_config(['web'=>[
+					'wd_enabled'=>$wd_enabled,
+					'wd_url'=>rtrim($wd_url,'/'),
+					'wd_user'=>$wd_user,
+					'wd_pass'=>$wd_pass,
+					'wd_domain'=>rtrim($wd_domain,'/'),
+					'wd_delete_remote'=>$wd_delete_remote,
+					'wd_sync_batch'=>$wd_sync_batch,
+				]])) {
+					admin_log('settings_webdav','enabled='.$wd_enabled.',url='.$wd_url);
+					header('Location: seting.php?msg=wd');
+					exit();
+				}
+				$save_error='配置文件写入失败,请检查 system 目录权限';
+			}
+		}
+
 		//B2 云存储同步(独立表单)
 		if ($action==='b2') {
 			$b2_enabled=isset($_POST['b2_enabled'])?1:0;
@@ -321,6 +354,24 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 //存储信息
 require_once SYSTEM_ROOT.'moderate.php';
 require_once SYSTEM_ROOT.'b2.php';
+require_once SYSTEM_ROOT.'webdav.php';
+
+//WebDAV测试连接(fetch)
+if (!empty($_POST['action']) && $_POST['action']==='wd_test' && $_SERVER['REQUEST_METHOD']==='POST') {
+	header('Content-Type: application/json; charset=utf-8');
+	if (!csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {
+		json_exit(['ok'=>false,'msg'=>'页面已过期,请刷新后重试']);
+	}
+	if (trim((string)$_POST['wd_url'])==='') {
+		json_exit(['ok'=>false,'msg'=>'请先填写 WebDAV 地址']);
+	}
+	//临时用表单值测试(不落盘)
+	$tmp=['wd_url'=>trim((string)$_POST['wd_url']),'wd_user'=>trim((string)$_POST['wd_user']),'wd_pass'=>(string)$_POST['wd_pass']];
+	$GLOBALS['config']['web']=array_merge($GLOBALS['config']['web'],['wd_url'=>$tmp['wd_url'],'wd_user'=>$tmp['wd_user'],'wd_pass'=>$tmp['wd_pass']]);
+	$r=wd_test();
+	admin_log('webdav_test',$r['ok']?'ok':'fail');
+	json_exit(['ok'=>$r['ok'],'msg'=>$r['msg']]);
+}
 
 //B2测试连接(fetch)
 if (!empty($_POST['action']) && $_POST['action']==='b2_test' && $_SERVER['REQUEST_METHOD']==='POST') {
@@ -363,6 +414,7 @@ $messages=[
 	'otp_backup'=>'备份码已重新生成(旧码已失效),请立即抄写保存',
 	'imageproc'=>'图片处理设置已保存',
 	'b2'=>'B2 同步设置已保存',
+	'wd'=>'WebDAV 同步设置已保存',
 ];
 
 $smarty = admin_smarty();
@@ -388,6 +440,7 @@ $smarty->assign('otp_backup_show',isset($_SESSION['otp_backup_show'])?$_SESSION[
 unset($_SESSION['otp_backup_show']);
 $smarty->assign('mod_keys',$mod_keys);
 $smarty->assign('b2',b2_stats());
+$smarty->assign('wd',wd_stats());
 $smarty->assign('api_tokens',$db->select('api_tokens',['id','name','token','enabled','uses','last_used','created'],['ORDER'=>['id'=>'ASC']]));
 $smarty->assign('mod_limit',MOD_MONTHLY_LIMIT);
 $smarty->assign('day_limit',MOD_DAILY_LIMIT);
