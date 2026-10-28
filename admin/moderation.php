@@ -20,22 +20,14 @@ if (isset($_GET['type']) && $_GET['type']==='testkey' && $_SERVER['REQUEST_METHO
 	//官方文档自带的示例图,moderatecontent自家的服务器一定能拉取到
 	$test_img='http://www.moderatecontent.com/img/logo.png';
 	$apiurl='https://www.moderatecontent.com/api/v2?key='.urlencode($key).'&url='.urlencode($test_img);
-	$curl=curl_init($apiurl);
-	curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36');
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-	curl_setopt($curl, CURLOPT_TIMEOUT, 12);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-	$resp=curl_exec($curl);
-	$err=curl_error($curl);
-	curl_close($curl);
+	$resp=moderate_http_get($apiurl);
 	$data=json_decode((string)$resp,true);
-	if ($resp===false || $err) {
-		json_exit(['ok'=>false,'msg'=>'接口连接失败: '.mb_substr($err,0,80)]);
+	if ($resp===false) {
+		json_exit(['ok'=>false,'msg'=>'鉴黄服务当前不可达(moderatecontent 接口异常或已下线),与 Key 无关,请稍后再试']);
 	}
 	if (!is_array($data)) {
-		json_exit(['ok'=>false,'msg'=>'接口返回异常,请稍后再试']);
+		$plain=trim(strip_tags(substr((string)$resp,0,40)));
+		json_exit(['ok'=>false,'msg'=>'接口返回异常'.($plain!==''?'('.$plain.')':'').',疑似服务故障而非 Key 问题']);
 	}
 	if (isset($data['error_code']) && $data['error_code']==0) {
 		json_exit(['ok'=>true,'msg'=>'Key 有效,接口调用正常(识别等级: '.(isset($data['rating_letter'])?$data['rating_letter']:$data['rating_index']).')']);

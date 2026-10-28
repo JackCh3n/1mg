@@ -72,4 +72,16 @@
         </div>
     </div>
 
+{if $b2_conf_on}
+    <div class="acard">
+        <div class="acard-head">B2 云存储同步
+            <span class="head-right"><a class="btn btn-sm" href="index.php?action=b2_sync&amp;token={$csrf}" onclick="return confirm('立即执行一轮B2同步?')">立即同步</a></span>
+        </div>
+        <div class="acard-body">
+            <p class="text-muted" style="margin-top:0">已同步 <b>{$b2_stat['synced']}</b> 张 · {format_size($b2_stat['synced_size'])} · 待同步 <b>{$b2_stat['pending']}</b> 张 · 累计上传 {$b2_stat['uploaded_total']} / 删除 {$b2_stat['deleted_total']} · 最近同步: {$b2_stat['last_run']|default:'从未'}</p>
+            {if $b2_stat['last_error']}<div class="alert alert-danger">{$b2_stat['last_error']|escape}</div>{/if}
+            {if $b2_domain}<p class="text-muted" style="font-size:12.5px">镜像域名: <a href="{$b2_domain}" target="_blank" rel="noopener">{$b2_domain}</a>(文件路径与本地一致)</p>{/if}
+        </div>
+    </div>
+{/if}
 {include file="tpl_footer.php"}

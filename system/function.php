@@ -162,6 +162,54 @@ function get_client_ip($type = 0,$adv=false) {
 }
 
 /**
+ * 鉴黄接口请求(moderatecontent)
+ * 该服务 TLS 证书只签发给主域 moderatecontent.com,而其 API 位于 www 子域,
+ * 严格校验会报 hostname mismatch。策略:先用完整校验请求,若仅因证书主机名
+ * 不匹配失败,则对该第三方接口降级重试一次(不涉及本站与B2等其它请求)。
+ * @param  string $url
+ * @return string|false 响应体
+ */
+function moderate_http_get($url){
+	$attempt=function($verify) use ($url){
+		$ch=curl_init($url);
+		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36');
+		curl_setopt($ch, CURLOPT_FAILONERROR, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verify);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verify ? 2 : 0);
+		$ca=http_ca_file();
+		if ($ca && $verify) { curl_setopt($ch, CURLOPT_CAINFO, $ca); }
+		$body=curl_exec($ch);
+		$err=curl_error($ch);
+		return ['body'=>$body,'err'=>$err];
+	};
+	$r=$attempt(true);
+	if ($r['body']!==false) {
+		return $r['body'];
+	}
+	//仅对证书主机名不匹配做降级(对方证书配置问题),其它错误照常失败
+	if (stripos($r['err'],'certificate subject name')!==false || stripos($r['err'],'alternative certificate')!==false) {
+		$r2=$attempt(false);
+		if ($r2['body']!==false) {
+			return $r2['body'];
+		}
+	}
+	return false;
+}
+
+/**
+ * curl HTTPS 用的 CA 证书包(本地环境 php.ini 常未配置 cainfo,
+ * 随项目附带 system/cacert.pem,存在则启用;SSL验证始终开启)
+ * @return string|null CURLOPT_CAINFO 路径,不存在返回null(用系统默认)
+ */
+function http_ca_file(){
+	$f=SYSTEM_ROOT.'cacert.pem';
+	return is_file($f) ? $f : null;
+}
+
+/**
  * SQLite数据库文件的绝对路径(配置里可能已是绝对路径,也可能还是相对站点根)
  * @return string
  */
@@ -515,14 +563,16 @@ function db_init_sqlite($db){
 		size TEXT DEFAULT '',
 		delete_token TEXT DEFAULT '',
 		user_id INTEGER DEFAULT 0,
-		expire_at TEXT DEFAULT ''
+		expire_at TEXT DEFAULT '',
+		b2_file_id TEXT DEFAULT ''
 	)");
 	$pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uniq_md5 ON imginfo(md5)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_token ON imginfo(delete_token)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_user ON imginfo(user_id)");
-	//老库补列: 图片有效期
+	//老库补列: 图片有效期 / B2文件ID
 	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN expire_at TEXT DEFAULT ''"); } catch (Exception $e) {}
+	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN b2_file_id TEXT DEFAULT ''"); } catch (Exception $e) {}
 	//注册用户
 	$pdo->exec("CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

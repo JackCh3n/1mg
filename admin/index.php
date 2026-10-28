@@ -6,6 +6,7 @@ require '../system/config.php';
 require SYSTEM_ROOT.'auth.php';
 admin_require_login();
 require_once SYSTEM_ROOT.'archive.php';
+require_once SYSTEM_ROOT.'b2.php';
 
 //到点自动归档(6小时一次),失败静默
 try {
@@ -24,6 +25,18 @@ if (isset($_GET['action']) && $_GET['action']=='archive_run' && isset($_GET['tok
 		exit();
 	}
 	$archive_msg='非法请求';
+}
+
+//手动 B2 同步
+$b2_msg='';
+if (isset($_GET['action']) && $_GET['action']=='b2_sync' && isset($_GET['token'])) {
+	if (hash_equals(csrf_token(),(string)$_GET['token'])) {
+		$br=b2_sync_run();
+		admin_log('b2_sync','up='.$br['uploaded'].',del='.$br['deleted'].',fail='.$br['failed']);
+		header('Location: index.php?b2='.($br['ok']?'1':'0'));
+		exit();
+	}
+	$b2_msg='非法请求';
 }
 
 //孤儿文件清理
@@ -106,6 +119,10 @@ $smarty->assign('archive_total',$archive_rows_total);
 $smarty->assign('archive_files',$archive_files);
 $smarty->assign('csrf',csrf_token());
 $smarty->assign('archive_msg',$archive_msg);
+$smarty->assign('b2_stat',b2_stats());
+$smarty->assign('b2_msg',$b2_msg.(isset($_GET['b2'])?(($_GET['b2']==='1')?'B2 同步完成一轮':'B2 同步失败,请到设置页查看错误'):''));
+$smarty->assign('b2_domain',rtrim((string)($config['web']['b2_domain'] ?? ''),'/'));
+$smarty->assign('b2_conf_on',!empty($config['web']['b2_enabled']));
 $smarty->assign('orphan_msg',$orphan_msg);
 $smarty->assign('disk_size',format_size($usage['size']));
 $smarty->assign('disk_files',$usage['files']);

@@ -69,6 +69,46 @@
     </div>
 
     <div class="acard">
+        <div class="acard-head">B2 云存储同步 <span class="sub">Backblaze B2 · 定时把图片上传到 B2 备份,支持删除同步与用量统计</span></div>
+        <div class="acard-body">
+            {if $b2['last_error']}<div class="alert alert-danger">最近一次同步出错: {$b2['last_error']|escape}</div>{/if}
+            <p class="text-muted" style="margin-top:0">当前: {if $b2['enabled']}<span class="label label-success">已启用</span>{else}<span class="label label-danger">未启用</span>{/if}
+                已同步 <b>{$b2['synced']}</b> 张({format_size($b2['synced_size'])}) · 待同步 <b>{$b2['pending']}</b> 张 · 最近同步: {$b2['last_run']|default:'从未'} · 累计上传 {$b2['uploaded_total']} / 删除 {$b2['deleted_total']}</p>
+            <form action="seting.php" method="post">
+                <input type="hidden" name="_csrf" value="{$csrf}">
+                <input type="hidden" name="action" value="b2">
+                <div class="form-row">
+                    <label>启用同步</label>
+                    <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text)">
+                        <input type="checkbox" name="b2_enabled" value="1"{if $config['web']['b2_enabled']} checked{/if} style="width:17px;height:17px">
+                        定时上传图片到 B2(随归档任务每6小时执行,也可手动立即同步)
+                    </label></div>
+                <div class="form-row"><label>Key ID</label>
+                    <input type="text" class="form-control" id="b2_key_id" name="b2_key_id" value="{$config['web']['b2_key_id']|escape}" style="max-width:340px;font-family:var(--mono)">
+                    <button type="button" class="btn btn-sm" id="b2-test-btn">测试连接</button>
+                    <span class="help-block" id="b2-test-result" style="margin:0 0 0 10px;align-self:center"></span></div>
+                <div class="form-row"><label>App Key</label>
+                    <input type="password" class="form-control" id="b2_app_key" name="b2_app_key" value="{$config['web']['b2_app_key']|escape}" style="max-width:340px;font-family:var(--mono)">
+                    <span class="text-muted" style="font-size:12.5px;align-self:center">只保存在服务端配置文件,不随 git 提交</span></div>
+                <div class="form-row"><label>存储桶 ID</label>
+                    <input type="text" class="form-control" name="b2_bucket_id" value="{$config['web']['b2_bucket_id']|escape}" style="max-width:340px;font-family:var(--mono)">
+                    <span class="text-muted" style="font-size:12.5px;align-self:center">点「测试连接」会列出账号下所有桶及其ID</span></div>
+                <div class="form-row"><label>存储桶名</label>
+                    <input type="text" class="form-control" name="b2_bucket_name" value="{$config['web']['b2_bucket_name']|escape}" style="max-width:220px" placeholder="仅备注"></div>
+                <div class="form-row"><label>自定义域名</label>
+                    <input type="text" class="form-control" name="b2_domain" value="{$config['web']['b2_domain']|escape}" style="max-width:320px" placeholder="https://cdn.example.com">
+                    <span class="text-muted" style="font-size:12.5px;align-self:center">B2 支持绑定自有域名;仅作展示,文件路径与本地一致</span></div>
+                <div class="form-row"><label>每轮数量</label>
+                    <input type="number" class="form-control" name="b2_sync_batch" min="1" max="100" value="{$config['web']['b2_sync_batch']}" style="max-width:100px">
+                    <label style="width:auto;display:flex;align-items:center;gap:8px;font-weight:400;font-size:14px;color:var(--text);margin-left:16px">
+                        <input type="checkbox" name="b2_delete_remote" value="1"{if $config['web']['b2_delete_remote']} checked{/if} style="width:17px;height:17px">
+                        本站删除时同步删除 B2 副本
+                    </label></div>
+                <div class="form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
+            </form>
+        </div>
+    </div>
+    <div class="acard">
         <div class="acard-head">接口令牌 <span class="sub">每个第三方工具用一个令牌,可独立吊销;启用后上传/预检接口需要携带(表单字段 api_token 或请求头 X-API-Token)</span></div>
         <div class="acard-body">
             <table class="table">
@@ -346,6 +386,29 @@
             out.style.color=d.ok?"var(--ok)":"var(--danger)";
         }).catch(function(){ out.textContent="请求失败"; out.style.color="var(--danger)"; })
         .finally(function(){ btn.disabled=false; btn.textContent="测试可用性"; });
+    });
+})();
+{/literal}
+</script>
+<script>
+{literal}
+(function(){
+    var btn=document.getElementById("b2-test-btn");
+    if(!btn) return;
+    btn.addEventListener("click", function(){
+        var out=document.getElementById("b2-test-result");
+        var csrf=document.querySelector("input[name=_csrf]").value;
+        var body="_csrf="+encodeURIComponent(csrf)
+            +"&action=b2_test"
+            +"&b2_key_id="+encodeURIComponent(document.getElementById("b2_key_id").value)
+            +"&b2_app_key="+encodeURIComponent(document.getElementById("b2_app_key").value);
+        btn.disabled=true; btn.textContent="测试中…";
+        out.textContent="";
+        fetch("seting.php",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body})
+        .then(function(r){return r.json();})
+        .then(function(d){ out.textContent=d.msg; out.style.color=d.ok?"var(--ok)":"var(--danger)"; })
+        .catch(function(){ out.textContent="请求失败"; out.style.color="var(--danger)"; })
+        .finally(function(){ btn.disabled=false; btn.textContent="测试连接"; });
     });
 })();
 {/literal}

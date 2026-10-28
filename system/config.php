@@ -42,6 +42,15 @@ $config=[
 		'img_webp_quality'=>82, //WebP压缩质量(1-100)
 		'watermark_text'=>'',   //水印文字(空=关闭;中文需在下方配置字体文件)
 		'watermark_font'=>'',   //TTF字体完整路径(留空则用GD内置位图字体,仅支持英文/数字)
+		//Backblaze B2 云存储同步
+		'b2_enabled'=>0,        //1=启用定时同步
+		'b2_key_id'=>'',        //B2 Application Key ID
+		'b2_app_key'=>'',       //B2 Application Key(服务端保存,不入库git)
+		'b2_bucket_id'=>'',     //存储桶ID
+		'b2_bucket_name'=>'',   //存储桶名(仅备注)
+		'b2_domain'=>'',        //B2自定义域名/友好URL(仅用于展示链接,如 https://cdn.example.com)
+		'b2_delete_remote'=>1,  //本站删除时同步删除B2副本(0=远端保留)
+		'b2_sync_batch'=>5,     //每轮同步上传数量(删除墓碑同额度)
 		//文件有效期(TTL)
 		'ttl_enabled'=>0,        //1=上传时允许选择有效期
 		//用户配额(0=不限制)

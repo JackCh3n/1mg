@@ -89,7 +89,17 @@ if ($type==='cron') {
 		exit(json_encode(['code'=>404,'error'=>'404']));
 	}
 	$result=archive_run((int)$config['web']['retention_online'],(int)$config['web']['retention_archive']);
-	exit(json_encode(['code'=>'success','data'=>$result], JSON_UNESCAPED_UNICODE));
+	//顺带执行一轮B2同步(未启用则跳过)
+	$b2_result=null;
+	try {
+		require_once SYSTEM_ROOT.'b2.php';
+		if (b2_ready()) {
+			$b2_result=b2_sync_run();
+		}
+	} catch (Exception $e) {
+		$b2_result=['ok'=>false,'error'=>$e->getMessage()];
+	}
+	exit(json_encode(['code'=>'success','data'=>['archive'=>$result,'b2'=>$b2_result]], JSON_UNESCAPED_UNICODE));
 }
 
 //其他访问回仪表盘

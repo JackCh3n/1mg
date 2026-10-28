@@ -113,6 +113,44 @@ if (!empty($_POST)) {
 			}
 		}
 
+		//B2 云存储同步(独立表单)
+		if ($action==='b2') {
+			$b2_enabled=isset($_POST['b2_enabled'])?1:0;
+			$b2_key_id=trim((string)$_POST['b2_key_id']);
+			$b2_app_key=trim((string)$_POST['b2_app_key']);
+			$b2_bucket_id=trim((string)$_POST['b2_bucket_id']);
+			$b2_bucket_name=trim(strip_tags((string)$_POST['b2_bucket_name']));
+			$b2_domain=trim((string)$_POST['b2_domain']);
+			$b2_delete_remote=isset($_POST['b2_delete_remote'])?1:0;
+			$b2_sync_batch=(int)$_POST['b2_sync_batch'];
+			foreach ([$b2_key_id,$b2_bucket_id] as $v) {
+				if (!preg_match('/^[A-Za-z0-9]{0,64}$/',$v)) { $save_error='B2 Key ID / 存储桶 ID 只能是字母数字'; break; }
+			}
+			if ($save_error==='' && $b2_domain!=='' && (!filter_var($b2_domain,FILTER_VALIDATE_URL) || !preg_match('#^https?://#i',$b2_domain))) {
+				$save_error='B2 自定义域名格式不正确(需 http(s):// 开头)';
+			}elseif ($save_error==='' && ($b2_sync_batch<1 || $b2_sync_batch>100)) {
+				$save_error='每轮同步数量需在1-100之间';
+			}else{
+				if (save_user_config(['web'=>[
+					'b2_enabled'=>$b2_enabled,
+					'b2_key_id'=>$b2_key_id,
+					'b2_app_key'=>$b2_app_key,
+					'b2_bucket_id'=>$b2_bucket_id,
+					'b2_bucket_name'=>$b2_bucket_name,
+					'b2_domain'=>rtrim($b2_domain,'/'),
+					'b2_delete_remote'=>$b2_delete_remote,
+					'b2_sync_batch'=>$b2_sync_batch,
+				]])) {
+					admin_log('settings_b2','enabled='.$b2_enabled.',bucket='.$b2_bucket_name);
+					//凭据变了要重新授权
+					@unlink(DATA_DIR.'b2_auth.json');
+					header('Location: seting.php?msg=b2');
+					exit();
+				}
+				$save_error='配置文件写入失败,请检查 system 目录权限';
+			}
+		}
+
 		//图片处理参数(独立表单,只保存本组设置)
 		if ($action==='imageproc') {
 			$img_max_side=(int)$_POST['img_max_side'];
@@ -282,6 +320,21 @@ if (!empty($_POST['action']) && $_POST['action']==='otp') {
 
 //存储信息
 require_once SYSTEM_ROOT.'moderate.php';
+require_once SYSTEM_ROOT.'b2.php';
+
+//B2测试连接(fetch)
+if (!empty($_POST['action']) && $_POST['action']==='b2_test' && $_SERVER['REQUEST_METHOD']==='POST') {
+	header('Content-Type: application/json; charset=utf-8');
+	if (!csrf_verify(isset($_POST['_csrf'])?$_POST['_csrf']:'')) {
+		json_exit(['ok'=>false,'msg'=>'页面已过期,请刷新后重试']);
+	}
+	if (trim((string)$_POST['b2_key_id'])==='' || trim((string)$_POST['b2_app_key'])==='') {
+		json_exit(['ok'=>false,'msg'=>'请先填写 Key ID 和 Application Key']);
+	}
+	$r=b2_test();
+	admin_log('b2_test',$r['ok']?'ok':'fail');
+	json_exit(['ok'=>$r['ok'],'msg'=>$r['msg']]);
+}
 $mod_keys=mod_keys_all();
 $db_file=db_file_path();
 $storage=[
@@ -309,6 +362,7 @@ $messages=[
 	'otp_off'=>'两步验证已关闭',
 	'otp_backup'=>'备份码已重新生成(旧码已失效),请立即抄写保存',
 	'imageproc'=>'图片处理设置已保存',
+	'b2'=>'B2 同步设置已保存',
 ];
 
 $smarty = admin_smarty();
@@ -333,6 +387,7 @@ $smarty->assign('otp_backup_left',otp_backup_left());
 $smarty->assign('otp_backup_show',isset($_SESSION['otp_backup_show'])?$_SESSION['otp_backup_show']:null);
 unset($_SESSION['otp_backup_show']);
 $smarty->assign('mod_keys',$mod_keys);
+$smarty->assign('b2',b2_stats());
 $smarty->assign('api_tokens',$db->select('api_tokens',['id','name','token','enabled','uses','last_used','created'],['ORDER'=>['id'=>'ASC']]));
 $smarty->assign('mod_limit',MOD_MONTHLY_LIMIT);
 $smarty->assign('day_limit',MOD_DAILY_LIMIT);

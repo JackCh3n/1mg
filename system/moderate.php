@@ -98,16 +98,7 @@ function moderate_run($limit=12){
 			break;
 		}
 		$apiurl = 'https://www.moderatecontent.com/api/v2?key='.urlencode($key).'&url='.urlencode($config['web']['cdn'].url_path($value['path']));
-		$curl = curl_init($apiurl);
-		curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36');
-		curl_setopt($curl, CURLOPT_FAILONERROR, true);
-		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 15);
-		$html = curl_exec($curl);
-		curl_close($curl);
+		$html = moderate_http_get($apiurl);
 
 		$html = json_decode((string)$html,true);
 		if (!is_array($html)) {
