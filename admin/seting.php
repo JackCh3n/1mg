@@ -275,6 +275,8 @@ if (!empty($_POST)) {
 				$save_error='原密码错误或修改失败';
 			}else{
 				admin_log('password_change','');
+				//改密后更换会话ID(保持登录态)
+				session_regenerate_id(true);
 				header('Location: seting.php?msg=password');
 				exit();
 			}

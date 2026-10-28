@@ -127,6 +127,15 @@ function archive_run($online_days, $archive_days){
 		$db->update('imginfo',['see'=>0],['id'=>$ex['id']]);
 	}
 
+	//顺带瘦身审计日志(保留最近5000条)
+	try {
+		$log_count=(int)$db->count('admin_log');
+		if ($log_count>5000) {
+			$keep_id=(int)$db->pdo->query("SELECT id FROM admin_log ORDER BY id DESC LIMIT 1 OFFSET 4999")->fetchColumn();
+			if ($keep_id) { $db->delete('admin_log',['id[<]'=>$keep_id]); }
+		}
+	} catch (Exception $e) {}
+
 	//顺带清理回收站中超过保留期的文件
 	$trash_days=(int)($GLOBALS['config']['web']['trash_days'] ?? 30);
 	trash_purge($trash_days);

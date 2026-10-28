@@ -41,11 +41,16 @@ function user_register($username, $password, $confirm){
 	if (!empty($exists)) {
 		return '用户名已被占用';
 	}
-	$GLOBALS['db']->insert('users',[
-		'username'=>$username,
-		'password_hash'=>password_hash($password, PASSWORD_DEFAULT),
-		'created'=>date('Y-m-d H:i:s'),
-	]);
+	try {
+		$GLOBALS['db']->insert('users',[
+			'username'=>$username,
+			'password_hash'=>password_hash($password, PASSWORD_DEFAULT),
+			'created'=>date('Y-m-d H:i:s'),
+		]);
+	} catch (Exception $e) {
+		//并发注册同名:唯一约束兜底
+		return '用户名已被占用';
+	}
 	return '';
 }
 

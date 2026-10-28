@@ -710,6 +710,29 @@ function rate_limit_check(){
 }
 
 /**
+ * 轻量接口限速(按前缀+IP+时间窗计数,超限返回false)
+ * 与上传限速共用 rate_limit 表,槽位带前缀区分;窗口翻转自动失效
+ * @param  string $prefix 槽位前缀(如 chk)
+ * @param  int    $max    窗口内最大次数
+ * @param  int    $mins   窗口分钟数
+ * @return bool
+ */
+function light_rate_check($prefix, $max, $mins){
+	try {
+		$pdo=$GLOBALS['db']->pdo;
+		$ip=(string)get_client_ip();
+		$slot=$prefix.date('YmdHi');
+		$pdo->prepare("INSERT INTO rate_limit (ip, slot, count) VALUES (?, ?, 1)
+			ON CONFLICT(ip, slot) DO UPDATE SET count = count + 1")->execute([$ip, $slot]);
+		$st=$pdo->prepare("SELECT count FROM rate_limit WHERE ip = ? AND slot = ?");
+		$st->execute([$ip, $slot]);
+		return ((int)$st->fetchColumn()) <= $max;
+	} catch (Exception $e) {
+		return true;//限速组件故障不阻塞正常请求
+	}
+}
+
+/**
  * 生成随机令牌(32位十六进制)
  * @return string
  */
