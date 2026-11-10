@@ -42,6 +42,7 @@ if (!empty($_SESSION['admin_id'])) {
 	$meta=archive_meta();
 	$trash=trash_stat();
 	$health['detail']=[
+		'version'=>trim((string)@file_get_contents(ROOT.'VERSION')),
 		'images_online'=>$count,
 		'images_disk'=>format_size($usage['size']).' / '.$usage['files'].' files',
 		'trash'=>format_size($trash['size']).' / '.$trash['files'].' files',
