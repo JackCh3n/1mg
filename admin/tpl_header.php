@@ -53,6 +53,21 @@
             {assign var="_titles" value=['index'=>'仪表盘','moderation'=>'内容审核','logs'=>'上传日志','audit'=>'操作日志','images'=>'图片管理','seting'=>'网站设置']}
             <h1 class="page-title">{if isset($_titles[$nav_active])}{$_titles[$nav_active]}{/if}</h1>
             <div class="topbar-right">
+                <div class="mobile-nav">
+                    <button type="button" class="theme-toggle" id="mobile-nav-btn" title="后台菜单" aria-label="后台菜单">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                    <div class="mobile-nav-menu" id="mobile-nav-menu">
+                        <a href="index.php"{if isset($nav_active) && $nav_active=='index'} class="active"{/if}>仪表盘</a>
+                        <a href="moderation.php"{if isset($nav_active) && $nav_active=='moderation'} class="active"{/if}>内容审核</a>
+                        <a href="logs.php"{if isset($nav_active) && $nav_active=='logs'} class="active"{/if}>上传日志</a>
+                        <a href="audit.php"{if isset($nav_active) && $nav_active=='audit'} class="active"{/if}>操作日志</a>
+                        <a href="images.php"{if isset($nav_active) && $nav_active=='images'} class="active"{/if}>图片管理</a>
+                        <a href="seting.php"{if isset($nav_active) && $nav_active=='seting'} class="active"{/if}>网站设置</a>
+                        <a href="../" target="_blank" rel="noopener">前台首页</a>
+                        <a href="logout.php" style="color:var(--danger)">退出登录</a>
+                    </div>
+                </div>
                 <a href="../" target="_blank" rel="noopener" title="打开前台首页" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13.5px;padding:6px 10px;border-radius:8px">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
                     返回首页

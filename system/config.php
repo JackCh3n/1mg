@@ -13,7 +13,15 @@ define('SYSTEM_ROOT', dirname(__FILE__).DIRECTORY_SEPARATOR);//当前文件目�
 define('ROOT', dirname(SYSTEM_ROOT).DIRECTORY_SEPARATOR);//上级目录
 define('DATA_DIR', ROOT.'data'.DIRECTORY_SEPARATOR);//数据目录(数据库/归档)
 date_default_timezone_set('Asia/Shanghai');
+//会话安全:cookie禁JS读取/限同站跳转,启用严格模式防会话ID注入
 if (session_status() === PHP_SESSION_NONE) {
+	session_set_cookie_params([
+		'lifetime' => 0,
+		'path' => '/',
+		'httponly' => true,
+		'samesite' => 'Lax',
+	]);
+	ini_set('session.use_strict_mode', '1');
 	session_start();
 }
 /*配置(SQLite单文件模式)*/

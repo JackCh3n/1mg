@@ -41,7 +41,8 @@ if ($search_ip!=='') {
 	}
 }
 if ($search_kw!=='') {
-	$where['name[~]']='%'.$search_kw.'%';
+	//转义LIKE通配符,防止输入%/_破坏匹配语义
+$where['name[~]']='%'.addcslashes($search_kw, '%_\\').'%';
 }
 if ($search_md5!=='' && preg_match('/^[0-9a-f]{32}$/',$search_md5)) {
 	$where['md5']=$search_md5;

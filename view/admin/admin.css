@@ -248,3 +248,31 @@ body.admin-body { display: flex; min-height: 100vh; }
 	.side { display: none; }
 	.stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* 移动端后台导航(桌面隐藏,<=900px顶栏显示汉堡下拉) */
+.mobile-nav { position: relative; display: none; }
+.mobile-nav-menu {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: calc(100% + 8px);
+	z-index: 200;
+	min-width: 180px;
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow);
+	padding: 8px;
+}
+.mobile-nav-menu.open { display: flex; flex-direction: column; }
+.mobile-nav-menu a {
+	padding: 9px 14px;
+	border-radius: 8px;
+	color: var(--muted);
+	font-size: 14px;
+}
+.mobile-nav-menu a:hover { background: var(--panel-2); color: var(--text); }
+.mobile-nav-menu a.active { background: var(--accent-weak); color: var(--accent-strong); font-weight: 600; }
+@media (max-width: 900px) {
+	.mobile-nav { display: block; }
+}

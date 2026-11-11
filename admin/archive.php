@@ -52,6 +52,8 @@ if ($type==='import') {
 		$ouser=(count($cols)>13)?(int)$cols[13]:0;
 		$oexpire=(count($cols)>14)?$cols[14]:'';
 		if ($omd5!=='' && $db->count('imginfo',['md5'=>$omd5])>0) { $skipped++; continue; }
+		//路径必须是图床结构(i/四位年月/两位日/文件名),脏数据跳过
+		if (!preg_match('#^i/\d{4}/\d{2}/\d{2}/[A-Za-z0-9._-]+$#', (string)$opath)) { $skipped++; continue; }
 		try {
 			$db->insert('imginfo',['path'=>$opath,'ip'=>$oip,'ua'=>$oua,'date'=>$odate,'dir'=>$odir,'compress'=>(int)$ocompress,'level'=>(int)$olevel,'see'=>(int)$osee,'md5'=>$omd5,'name'=>$oname,'size'=>$osize,'delete_token'=>$otoken,'user_id'=>$ouser,'expire_at'=>$oexpire]);
 			$imported++;

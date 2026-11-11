@@ -726,7 +726,13 @@ function light_rate_check($prefix, $max, $mins){
 			ON CONFLICT(ip, slot) DO UPDATE SET count = count + 1")->execute([$ip, $slot]);
 		$st=$pdo->prepare("SELECT count FROM rate_limit WHERE ip = ? AND slot = ?");
 		$st->execute([$ip, $slot]);
-		return ((int)$st->fetchColumn()) <= $max;
+		$ok=((int)$st->fetchColumn()) <= $max;
+		//低频清理本前缀的过期槽位(2倍窗口前的都过期了)
+		if (random_int(1,100)===1) {
+			$cutoff=date('YmdHi', time()-$mins*60*2);
+			$pdo->prepare("DELETE FROM rate_limit WHERE ip = ? AND slot < ? AND slot LIKE ?")->execute([$ip, $cutoff, $prefix.'%']);
+		}
+		return $ok;
 	} catch (Exception $e) {
 		return true;//限速组件故障不阻塞正常请求
 	}

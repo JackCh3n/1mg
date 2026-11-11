@@ -29,6 +29,12 @@ function csrf_verify($token){
  * 所有后台页面与写操作统一入口校验,未登录跳转到登录页
  */
 function admin_require_login(){
+	//后台页面安全响应头(防点击劫持/类型嗅探)
+	if (!headers_sent()) {
+		header('X-Frame-Options: DENY');
+		header('X-Content-Type-Options: nosniff');
+		header('Referrer-Policy: same-origin');
+	}
 	if (empty($_SESSION['admin_id']) || empty($_SESSION['admin_user'])) {
 		header('Location: login.php');
 		exit();
