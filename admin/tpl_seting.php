@@ -25,30 +25,30 @@
                 </div>
                 <div class="form-row">
                     <label>起始年份</label>
-                    <input type="number" class="form-control" name="since_year" min="1970" max="<?php echo (int)date('Y'); ?>" value="{$config['web']['since_year']}" style="max-width:120px">
-                    <span class="text-muted" style="font-size:13px;align-self:center">页脚版权年份自动计算: © 起始年-当前年</span>
+                    <input type="number" class="form-control" name="since_year" min="1970" max="<?php echo (int)date('Y'); ?>" value="{$config['web']['since_year']|escape}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">页脚版权年份自动计算：© 起始年 - 当前年</span>
                 </div>
                 <div class="form-row">
                     <label>上传限速</label>
-                    <input type="number" class="form-control" name="rate_hour" min="0" max="10000" value="{$config['web']['rate_hour']}" style="max-width:120px">
-                    <span class="text-muted" style="font-size:13px;align-self:center">次/小时/IP(0=不限制,含失败尝试)</span>
+                    <input type="number" class="form-control" name="rate_hour" min="0" max="10000" value="{$config['web']['rate_hour']|escape}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">次/小时/IP(0=不限制，含失败尝试)</span>
                 </div>
                 <div class="form-row">
                     <label>单张上限</label>
-                    <input type="number" class="form-control" name="max_size_mb" min="1" max="50" value="{$config['web']['max_size_mb']}" style="max-width:120px">
-                    <span class="text-muted" style="font-size:13px;align-self:center">MB(1-50,注意不超过服务器 upload_max_filesize)</span>
+                    <input type="number" class="form-control" name="max_size_mb" min="1" max="50" value="{$config['web']['max_size_mb']|escape}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">MB(1-50，注意不超过服务器 upload_max_filesize)</span>
                 </div>
                 <div class="form-row">
                     <label>用户配额</label>
-                    <input type="number" class="form-control" name="user_quota_mb" min="0" max="1048576" value="{$config['web']['user_quota_mb']}" style="max-width:120px">
-                    <span class="text-muted" style="font-size:13px;align-self:center">MB 每人存储上限(0=不限)</span>
-                    <input type="number" class="form-control" name="user_daily_files" min="0" max="10000" value="{$config['web']['user_daily_files']}" style="max-width:120px;margin-left:16px">
-                    <span class="text-muted" style="font-size:13px;align-self:center">张/天 每人每日上限(0=不限)</span>
+                    <input type="number" class="form-control" name="user_quota_mb" min="0" max="1048576" value="{$config['web']['user_quota_mb']|escape}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">MB 每人存储上限 (0=不限)</span>
+                    <input type="number" class="form-control" name="user_daily_files" min="0" max="10000" value="{$config['web']['user_daily_files']|escape}" style="max-width:120px;margin-left:16px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">张/天 每人每日上限 (0=不限)</span>
                 </div>
                 <div class="form-row">
                     <label>单次张数</label>
-                    <input type="number" class="form-control" name="max_files" min="1" max="100" value="{$config['web']['max_files']}" style="max-width:120px">
-                    <span class="text-muted" style="font-size:13px;align-self:center">一次最多上传的张数(1-100)</span>
+                    <input type="number" class="form-control" name="max_files" min="1" max="100" value="{$config['web']['max_files']|escape}" style="max-width:120px">
+                    <span class="text-muted" style="font-size:13px;align-self:center">一次最多上传的张数 (1-100)</span>
                 </div>
                 <div class="form-row">
                     <label>WebP 转存</label>

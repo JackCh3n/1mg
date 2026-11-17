@@ -39,38 +39,58 @@ $file=$_FILES['file'];
 //上传过程出错
 if (!empty($file['error'])) {
 	$errors=[
-		UPLOAD_ERR_INI_SIZE=>'文件超过了php.ini限制的大小',
-		UPLOAD_ERR_FORM_SIZE=>'文件超过了表单限制的大小',
-		UPLOAD_ERR_PARTIAL=>'文件只有部分被上传',
-		UPLOAD_ERR_NO_FILE=>'没有选择文件',
+		UPLOAD_ERR_INI_SIZE=>'文件超过了服务器允许的最大大小，请压缩后重试',
+		UPLOAD_ERR_FORM_SIZE=>'文件超过了表单限制的大小，请压缩后重试',
+		UPLOAD_ERR_PARTIAL=>'文件只有部分被上传，请重新上传',
+		UPLOAD_ERR_NO_FILE=>'未选择文件，请选择要上传的图片',
 	];
-	json_exit(['code'=>110,'error'=>isset($errors[$file['error']])?$errors[$file['error']]:'文件上传失败(error '.$file['error'].')']);
+	json_exit(['code'=>110,'error'=>isset($errors[$file['error']])?$errors[$file['error']]:'文件上传失败，请稍后重试']);
 }
 
-//大小限制(后台可配,默认5M)
+//大小限制 (后台可配，默认 5M)
 $max_bytes=((int)$config['web']['max_size_mb'])*1048576;
 if ($file['size'] > $max_bytes) {
-	json_exit(['code'=>110,'error'=>'对不起,上传的文件大于'.$config['web']['max_size_mb'].'M']);
+	json_exit(['code'=>110,'error'=>'文件太大了，超过'.$config['web']['max_size_mb'].'MB，请压缩或裁剪后重试']);
 }
 
-//扩展名白名单(统一转小写再比对,原来的写法 .JPG 会被拒)
+//扩展名白名单 (统一转小写再比对，原来的写法 .JPG 会被拒)
 $file_ext=strtolower(ltrim((string)strrchr($file['name'],'.'),'.'));
 if ($file_ext==='jpeg') {
 	$file_ext='jpg';
 }
 if (!in_array($file_ext,['jpg','png','bmp','gif','webp'])) {
-	json_exit(['code'=>110,'error'=>'扩展名不允许']);
+	json_exit(['code'=>110,'error'=>'不支持此文件格式，仅支持 JPG、PNG、GIF、BMP、WebP']);
 }
 
-//校验文件真实内容是图片(getimagesize只认文件头,故配合内容扫描)
+//校验文件真实内容是图片 (getimagesize 只认文件头，故配合内容扫描)
 $size_info=getimagesize($file['tmp_name']);
 if ($size_info===false || !in_array($size_info['mime'],['image/jpeg','image/png','image/gif','image/bmp','image/x-ms-bmp','image/x-bmp','image/webp'])) {
-	json_exit(['code'=>110,'error'=>'只允许上传图片文件']);
+	json_exit(['code'=>110,'error'=>'这不是有效的图片文件，请确认文件完整性']);
 }
 
 //图片内不应包含 "<?php" 等标签(gif不做重编码,必须靠这里拦截图片马)
 if (!scan_image_safe($file['tmp_name'])) {
 	json_exit(['code'=>110,'error'=>'图片内容不合法']);
+}
+
+//GIF 特殊处理：额外检查是否为有效 GIF 格式（防止伪 GIF 攻击）
+if ($file_ext === 'gif') {
+	$fp = fopen($file['tmp_name'], 'rb');
+	if ($fp) {
+		$header = fread($fp, 6);
+		fclose($fp);
+		if (!preg_match('/^(GIF8[7a]a)/', $header)) {
+			json_exit(['code'=>110,'error'=>'文件格式损坏或不是有效的 GIF 图片']);
+		}
+		//检查 GIF 尺寸是否合理（防超大 GIF 拒绝服务）
+		if (strlen($header) >= 6) {
+			$width = ord($header[4]) | (ord($header[5]) << 8);
+			$height = ord($header[2]) | (ord($header[3]) << 8);
+			if ($width > 4096 || $height > 4096) {
+				json_exit(['code'=>110,'error'=>'图片尺寸过大，最大支持 4096x4096 像素']);
+			}
+		}
+	}
 }
 
 //计算md5

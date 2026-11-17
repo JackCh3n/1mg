@@ -79,19 +79,27 @@ $ua=[//PC端的UserAgent
 	return $ua[array_rand($ua)];
 }
 
-function file_put_config($dir,$file_name,$array){
-	echo "string";
-}
+// 废弃函数：已不再使用，保留注释说明历史用途
+// function file_put_config($dir,$file_name,$array){ echo "string"; } // 旧配置写入函数，已弃用
 function bbr(){
 	echo(PHP_EOL);
 }
 /**
- * openssl加密与解密
+ * openssl 加密与解密
  * @param  string $str 要加密的字符串
- * @param  string $n   默认加密,非 en解密
+ * @param  string $n   默认加密，非 en 解密
  * @return string      返回加密或解密的字符串
  */
-define('ENC_KEY', 'http://nobige.cn');
+// 加密密钥：优先从环境变量读取，否则使用配置文件中设置的值，最后才使用硬编码兜底
+if (getenv('MG_ENCRYPTION_KEY') !== false && getenv('MG_ENCRYPTION_KEY') !== '') {
+    define('ENC_KEY', getenv('MG_ENCRYPTION_KEY'));
+} elseif (isset($GLOBALS['config']['web']['encryption_key']) && trim((string)$GLOBALS['config']['web']['encryption_key']) !== '') {
+    define('ENC_KEY', trim((string)$GLOBALS['config']['web']['encryption_key']));
+} else {
+    // ⚠️ 严重安全警告：生产环境必须设置 MG_ENCRYPTION_KEY 环境变量或 config.user.json 中的 encryption_key
+    // 当前使用硬编码密钥仅用于向后兼容旧数据，强烈建议立即更换
+    define('ENC_KEY', 'http://nobige.cn');
+}
 define('ENC_LEGACY_IV', 'MyQNum1272016935');
 function encdec_openssl($str,$n='en'){
 	//v2格式: base64('v2' + IV(16字节) + 密文),每次加密用随机IV
@@ -154,22 +162,58 @@ function get_cache($key){
 	
 }
 /**
- * 获取客户端IP地址
- * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
+ * 获取客户端 IP 地址（支持反向代理环境）
+ * @param integer $type 返回类型 0 返回 IP 地址 1 返回 IPV4 地址数字
  * @param boolean $adv 是否进行高级模式获取（有可能被伪装） 
  * @return mixed
  */
-function get_client_ip($type = 0,$adv=false) {
-    $type       =  $type ? 1 : 0;
-    static $ip  =   NULL;
+function get_client_ip($type = 0, $adv = false) {
+    $type = $type ? 1 : 0;
+    static $ip = NULL;
     if ($ip !== NULL) return $ip[$type];
-    //只信任 REMOTE_ADDR,X-Forwarded-For 等请求头可被任意伪造,不能作为记录依据
-    if (isset($_SERVER['REMOTE_ADDR'])) {
-        $ip     =   $_SERVER['REMOTE_ADDR'];
+    
+    // 信任的反向代理头部（按优先级排序）
+    $proxy_headers = [
+        'HTTP_CF_CONNECTING_IP',  // Cloudflare
+        'HTTP_X_FORWARDED_FOR',   // 通用代理
+        'HTTP_X_REAL_IP',         // Nginx
+        'HTTP_CLIENT_IP'          // 部分代理
+    ];
+    
+    $ip = '0.0.0.0';
+    
+    // 优先检查代理头部（仅当 REMOTE_ADDR 是可信代理时）
+    $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    
+    // 如果是常见代理 IP 段，才信任代理头部
+    $is_trusted_proxy = preg_match('/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/', $remote_addr) || 
+                        in_array($remote_addr, ['127.0.0.1', '::1']);
+    
+    if ($is_trusted_proxy) {
+        foreach ($proxy_headers as $header) {
+            if (!empty($_SERVER[$header])) {
+                $candidate_ip = $_SERVER[$header];
+                // X-Forwarded-For 可能包含多个 IP，取第一个
+                if (strpos($candidate_ip, ',') !== false) {
+                    $candidate_ip = trim(explode(',', $candidate_ip)[0]);
+                }
+                // 验证 IP 格式
+                if (filter_var($candidate_ip, FILTER_VALIDATE_IP)) {
+                    $ip = $candidate_ip;
+                    break;
+                }
+            }
+        }
     }
-    // IP地址合法验证
-    $long = $ip ? sprintf("%u",ip2long($ip)) : 0;
-    $ip   = $long ? array($ip, $long) : array('0.0.0.0', 0);
+    
+    // 如果没有从代理头获取到有效 IP，使用 REMOTE_ADDR
+    if ($ip === '0.0.0.0' && !empty($remote_addr) && filter_var($remote_addr, FILTER_VALIDATE_IP)) {
+        $ip = $remote_addr;
+    }
+    
+    // IP 地址合法验证
+    $long = ip2long($ip);
+    $ip = $long !== false ? array($ip, sprintf("%u", $long)) : array('0.0.0.0', 0);
     return $ip[$type];
 }
 
@@ -254,8 +298,8 @@ function format_size($size){
 }
 
 /**
- * 校验API令牌:返回令牌名或false
- * 接受 配置里的全局令牌(兼容旧设置) 或 数据库中的启用令牌
+ * 校验 API 令牌：返回令牌名或 false
+ * 接受 配置里的全局令牌 (兼容旧设置) 或 数据库中的启用令牌
  * @param  string $given
  * @return string|false
  */
@@ -263,6 +307,10 @@ function api_token_check($given){
 	global $config;
 	$given=(string)$given;
 	if ($given==='') {
+		return false;
+	}
+	// 增强验证：令牌长度至少 16 字符，必须是十六进制格式（32 位 MD5 风格）
+	if (strlen($given) < 16 || !preg_match('/^[a-f0-9]{16,}$/i', $given)) {
 		return false;
 	}
 	//旧配置的全局令牌
@@ -273,7 +321,7 @@ function api_token_check($given){
 	try {
 		$row=$GLOBALS['db']->get('api_tokens',['id','name'],['token'=>$given,'enabled'=>1]);
 		if (!empty($row)) {
-			//记录用量(尽力而为,失败不影响鉴权)
+			//记录用量 (尽力而为，失败不影响鉴权)
 			try {
 				$GLOBALS['db']->pdo->prepare("UPDATE api_tokens SET uses = uses + 1, last_used = ? WHERE id = ?")
 					->execute([date('Y-m-d H:i:s'), $row['id']]);
@@ -622,22 +670,6 @@ function db_init_sqlite($db){
 		action TEXT DEFAULT '',
 		target TEXT DEFAULT '',
 		ip TEXT DEFAULT '',
-		date TEXT DEFAULT ''
-	)");
-	//API令牌(多令牌,可独立吊销)
-	$pdo->exec("CREATE TABLE IF NOT EXISTS api_tokens (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT DEFAULT '',
-		token TEXT UNIQUE,
-		enabled INTEGER DEFAULT 1,
-		uses INTEGER DEFAULT 0,
-		last_used TEXT DEFAULT '',
-		created TEXT DEFAULT ''
-	)");
-	//IP黑名单
-	$pdo->exec("CREATE TABLE IF NOT EXISTS ban_ip (
-		ip TEXT PRIMARY KEY,
-		reason TEXT DEFAULT '',
 		date TEXT DEFAULT ''
 	)");
 	//API令牌(多令牌,可独立吊销)

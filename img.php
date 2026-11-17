@@ -83,6 +83,11 @@ if (empty($row)) {
 	<div class="nav-inner">
 		<a class="brand" href="/"><span class="logo-dot"></span><?php echo $e_title; ?></a>
 		<div class="nav-links"><a href="/">上传图片</a></div>
+		<button type="button" class="nav-hamburger" id="nav-hamburger" aria-label="菜单">
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
 		<div class="nav-right">
 			<button type="button" class="theme-toggle" data-mg-theme-toggle title="切换明暗皮肤">
 				<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -98,6 +103,32 @@ if (empty($row)) {
 <script src="view/vendor/qrcode.min.js"></script>
 <script>
 (function(){
+    // 移动端汉堡菜单
+    var hamburger = document.getElementById('nav-hamburger');
+    var navLinks = document.querySelector('.nav-links');
+    if (hamburger && navLinks) {
+        hamburger.addEventListener('click', function () {
+            this.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+        
+        // 点击链接后自动关闭菜单
+        navLinks.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+        
+        // 点击页面其他区域关闭菜单
+        document.addEventListener('click', function(e) {
+            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+    }
+    
     var tabs=document.getElementById('share-tabs');
     if (tabs) {
         tabs.addEventListener('click', function(e){

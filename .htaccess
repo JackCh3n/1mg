@@ -1,7 +1,7 @@
 # 默认入口
 DirectoryIndex index.php index.html
 
-# 禁止访问敏感目录(system为纯PHP逻辑,正常入口都会先require,不允许直接访问)
+# 禁止访问敏感目录(system为纯PHP逻辑，正常入口都会先require，不允许直接访问)
 <FilesMatch "\.sqlite$|\.user\.json$|\.csv\.gz$">
   <IfModule mod_authz_core.c>
     Require all denied
@@ -12,6 +12,46 @@ DirectoryIndex index.php index.html
   </IfModule>
 </FilesMatch>
 
+# 禁止访问隐藏文件和备份文件
+<FilesMatch "\.(bak|backup|tmp|swp|orig|git|env)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# 禁止在 data 和 cache 目录执行 PHP（只允许读取）
+<FilesMatch "\.(php|php3|php4|php5|phtml)$">
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^data/ - [F,L]
+    RewriteRule ^cache/ - [F,L]
+  </IfModule>
+</FilesMatch>
+
+# 安全响应头增强
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "DENY"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
+
+# 禁止直接访问某些目录
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfIfModule>
+
+# 禁止访问系统临时文件
+<FilesMatch "^\.">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

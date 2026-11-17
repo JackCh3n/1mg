@@ -10,12 +10,12 @@
                 <tbody>
                     {foreach $logs as $l}
                     <tr>
-                        <td>{$l['id']}</td>
-                        <td style="white-space:nowrap">{$l['date']|escape}</td>
-                        <td>{$l['username']|escape}</td>
-                        <td>{$l['action']|escape}</td>
-                        <td style="max-width:320px;word-break:break-all" class="text-muted">{$l['target']|escape}</td>
-                        <td>{$l['ip']|escape}</td>
+                        <td>{$l.id|escape}</td>
+                        <td style="white-space:nowrap">{$l.date|escape}</td>
+                        <td>{$l.username|escape}</td>
+                        <td>{$l.action|escape}</td>
+                        <td style="max-width:320px;word-break:break-all" class="text-muted">{$l.target|escape}</td>
+                        <td>{$l.ip|escape}</td>
                     </tr>
                     {/foreach}
                     {if count($logs)==0}
@@ -24,13 +24,13 @@
                 </tbody>
             </table>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px">
-                <span class="pager-info">共 {$count} 条 · 第 {$page} / {$total_pages} 页</span>
+                <span class="pager-info">共 {$count|escape} 条 · 第 {$page|escape} / {$total_pages|escape} 页</span>
                 <div class="pager">
                     <a href="audit.php?page=1">«</a>
                     {for $p=max(1,$page-4) to min($total_pages,$page+4)}
-                        {if $p==$page}<span class="current">{$p}</span>{else}<a href="audit.php?page={$p}">{$p}</a>{/if}
+                        {if $p==$page}<span class="current">{$p|escape}</span>{else}<a href="audit.php?page={$p|escape}">{$p|escape}</a>{/if}
                     {/for}
-                    <a href="audit.php?page={$total_pages}">»</a>
+                    <a href="audit.php?page={$total_pages|escape}">»</a>
                 </div>
             </div>
         </div>

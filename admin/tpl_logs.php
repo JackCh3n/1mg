@@ -24,58 +24,57 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {foreach $data['logs'] as $value}
+                    {foreach $data.logs as $value}
                     <tr>
-                        <td><input type="checkbox" name="ids[]" value="{$value['id']}" form="batch-form"{if !$value['see']} disabled{/if}></td>
-                        <td>{$value['id']}</td>
-                        <td style="white-space:nowrap">{$value['date']|escape}</td>
-                        <td>{$value['ip']|escape}</td>
-                        <td style="max-width:220px;word-break:break-all" class="text-muted">{$value['ua']|escape}</td>
-                        <td><a href="../{$value['path']|escape:'url'}" target="_blank">{$value['path']|escape}</a></td>
-                        <td>{format_size((int)$value['size'])}</td>
-                        <td>{if $value['see']}<span class="label label-success">正常</span>{else}<span class="label label-danger">已删除</span>{/if}</td>
+                        <td><input type="checkbox" name="ids[]" value="{$value.id|escape}" form="batch-form"{if !$value.see} disabled{/if}></td>
+                        <td>{$value.id|escape}</td>
+                        <td style="white-space:nowrap">{$value.date|escape}</td>
+                        <td>{$value.ip|escape}</td>
+                        <td style="max-width:220px;word-break:break-all" class="text-muted">{$value.ua|escape}</td>
+                        <td><a href="../{$value.path|escape:'url'}" target="_blank">{$value.path|escape}</a></td>
+                        <td>{format_size((int)$value.size)}</td>
+                        <td>{if $value.see}<span class="label label-success">正常</span>{else}<span class="label label-danger">已删除</span>{/if}</td>
                         <td>
                             <form method="post" action="images.php?type=del" style="display:inline" onsubmit="return confirm('确认删除该图片?')">
                                 <input type="hidden" name="_csrf" value="{$csrf}">
-                                <input type="hidden" name="key" value="{$value['id']}">
-                                <button type="submit" class="btn btn-xs btn-danger"{if !$value['see']} disabled{/if}>删除</button>
+                                <input type="hidden" name="key" value="{$value.id|escape}">
+                                <button type="submit" class="btn btn-xs btn-danger"{if !$value.see} disabled{/if}>删除</button>
                             </form>
                             <form method="post" action="moderation.php?type=ban_ip" style="display:inline" onsubmit="return confirm('封禁该 IP?')">
                                 <input type="hidden" name="_csrf" value="{$csrf}">
-                                <input type="hidden" name="ip" value="{$value['ip']|escape}">
+                                <input type="hidden" name="ip" value="{$value.ip|escape}">
                                 <input type="hidden" name="reason" value="上传违规内容">
-                                <button type="submit" class="btn btn-xs">封禁IP</button>
+                                <button type="submit" class="btn btn-xs">封禁 IP</button>
                             </form>
                             <form method="post" action="images.php?type=restore" style="display:inline">
                                 <input type="hidden" name="_csrf" value="{$csrf}">
-                                <input type="hidden" name="key" value="{$value['id']}">
-                                <button type="submit" class="btn btn-xs btn-success"{if $value['see']} disabled{/if}>恢复</button>
+                                <input type="hidden" name="key" value="{$value.id|escape}">
+                                <button type="submit" class="btn btn-xs btn-success"{if $value.see} disabled{/if}>恢复</button>
                             </form>
                         </td>
                     </tr>
                     {/foreach}
-                    {if count($data['logs'])==0}
+                    {if count($data.logs)==0}
                     <tr><td colspan="9" class="empty-tip">没有记录</td></tr>
                     {/if}
                 </tbody>
             </table>
-            <form method="post" action="logs.php?{if $data['search_ip']}ip={$data['search_ip']|escape:'url'}&amp;{/if}{if $data['search_kw']}kw={$data['search_kw']|escape:'url'}&amp;{/if}{if $data['search_md5']}md5={$data['search_md5']|escape:'url'}{/if}" id="batch-form" onsubmit="return confirm('确认批量删除选中的图片?')">
+            <form method="post" action="logs.php?{if $data.search_ip}ip={$data.search_ip|escape:'url'}&amp;{/if}{if $data.search_kw}kw={$data.search_kw|escape:'url'}&amp;{/if}{if $data.search_md5}md5={$data.search_md5|escape:'url'}{/if}" id="batch-form" onsubmit="return confirm('确认批量删除选中的图片?')">
                 <input type="hidden" name="_csrf" value="{$csrf}">
                 <input type="hidden" name="batch_del" value="1">
-                <input type="hidden" name="ip" value="{$data['search_ip']|escape}">
+                <input type="hidden" name="ip" value="{$data.search_ip|escape}">
                 <p style="margin:12px 0 0"><button type="submit" class="btn btn-danger btn-sm">批量删除选中</button>
-                    <span class="text-muted" style="font-size:12.5px;margin-left:8px">删除的图片会进入回收站,可在「图片管理」页恢复</span></p>
+                    <span class="text-muted" style="font-size:12.5px;margin-left:8px">删除的图片会进入回收站，可在「图片管理」页恢复</span></p>
             </form>
-            {literal}<script>(function(){var a=document.getElementById('check-all');if(a)a.addEventListener('change',function(){document.querySelectorAll('input[name="ids[]"]:not([disabled])').forEach(function(c){c.checked=a.checked;});});})();</script>{/literal}
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px">
-                <span class="pager-info">共 {$data['count']} 条 · 第 {$data['page']} / {$data['total_pages']} 页</span>
+                <span class="pager-info">共 {$data.count|escape} 条 · 第 {$data.page|escape} / {$data.total_pages|escape} 页</span>
                 <div class="pager">
-                    <a href="logs.php?page=1{if $data['search_ip']}&amp;ip={$data['search_ip']|escape:'url'}{/if}">«</a>
-                    {for $p=max(1,$data['page']-4) to min($data['total_pages'],$data['page']+4)}
-                        {if $p==$data['page']}<span class="current">{$p}</span>{else}<a href="logs.php?page={$p}{if $data['search_ip']}&amp;ip={$data['search_ip']|escape:'url'}{/if}">{$p}</a>{/if}
+                    <a href="logs.php?page=1{if $data.search_ip}&amp;ip={$data.search_ip|escape:'url'}{/if}">«</a>
+                    {for $p=max(1,$data.page-4) to min($data.total_pages,$data.page+4)}
+                        {if $p==$data.page}<span class="current">{$p|escape}</span>{else}<a href="logs.php?page={$p|escape}{if $data.search_ip}&amp;ip={$data.search_ip|escape:'url'}{/if}">{$p|escape}</a>{/if}
                     {/for}
-                    <a href="logs.php?page={$data['total_pages']}{if $data['search_ip']}&amp;ip={$data['search_ip']|escape:'url'}{/if}">»</a>
+                    <a href="logs.php?page={$data.total_pages|escape}{if $data.search_ip}&amp;ip={$data.search_ip|escape:'url'}{/if}">»</a>
                 </div>
             </div>
         </div>

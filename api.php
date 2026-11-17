@@ -30,6 +30,11 @@ $need_token = isset($config['web']['api_token']) && trim((string)$config['web'][
         <div class="nav-inner">
             <a class="brand" href="/"><span class="logo-dot"></span><?php echo $e_title; ?></a>
             <div class="nav-links"><a href="/">返回上传</a></div>
+            <button type="button" class="nav-hamburger" id="nav-hamburger" aria-label="菜单">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="nav-right">
                 <button type="button" class="theme-toggle" data-mg-theme-toggle title="切换明暗皮肤">
                     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -50,8 +55,8 @@ $need_token = isset($config['web']['api_token']) && trim((string)$config['web'][
             <p><code>POST <?php echo $e_server; ?>/upload.php</code></p>
             <table>
                 <tr><th>参数</th><th>位置</th><th>说明</th></tr>
-                <tr><td><code>file</code></td><td>multipart 表单字段(必填)</td><td>图片文件,≤5MB,支持 jpg/png/gif/bmp</td></tr>
-                <tr><td><code>api_token</code></td><td>表单字段或请求头 <code>X-API-Token</code></td><td><?php echo $need_token ? '必填(本站已开启接口鉴权)' : '本站未开启鉴权,可不传'; ?></td></tr>
+                <tr><td><code>file</code></td><td>multipart 表单字段 (必填)</td><td>图片文件，≤5MB，支持 jpg/png/gif/bmp</td></tr>
+                <tr><td><code>api_token</code></td><td>表单字段或请求头 <code>X-API-Token</code></td><td><?php echo $need_token ? '必填 (本站已开启接口鉴权)' : '本站未开启鉴权，可不传'; ?></td></tr>
             </table>
             <p>成功响应:</p>
             <pre>{

@@ -31,6 +31,9 @@
     }
 
     function apply() {
+        // 添加平滑过渡效果
+        document.body.style.transition = 'background .25s ease, color .25s ease';
+        
         root.setAttribute('data-skin', effectiveSkin());
         if (state.accent && /^#[0-9a-fA-F]{6}$/.test(state.accent)) {
             root.style.setProperty('--accent', state.accent);

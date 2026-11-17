@@ -66,6 +66,11 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 	<div class="nav-inner">
 		<a class="brand" href="../"><span class="logo-dot"></span><?php echo $e_title; ?></a>
 		<div class="nav-links"><a href="../">上传图片</a></div>
+		<button type="button" class="nav-hamburger" id="nav-hamburger" aria-label="菜单">
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
 		<div class="nav-right">
 			<a href="center.php"><b><?php echo $e_user; ?></b></a>
 			<a href="logout.php">退出</a>
@@ -76,6 +81,34 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 		</div>
 	</div>
 </nav>
+
+<script>
+// 移动端汉堡菜单
+(function(){
+    var hamburger = document.getElementById('nav-hamburger');
+    var navLinks = document.querySelector('.nav-links');
+    if (hamburger && navLinks) {
+        hamburger.addEventListener('click', function () {
+            this.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+        
+        navLinks.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+    }
+})();
+</script>
 
 <div class="container">
 	<div class="hero" style="padding:34px 0 10px">

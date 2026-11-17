@@ -1,25 +1,25 @@
 {include file="tpl_header.php"}
 
     {if $archive_msg}<div class="alert alert-danger">{$archive_msg|escape}</div>{/if}
-    {if isset($smarty.get.imported)}<div class="alert alert-success">归档导入完成: 新增 {$smarty.get.imported|escape|intval} 条,跳过(已存在) {$smarty.get.skipped|escape|intval} 条</div>{/if}
+    {if isset($smarty.get.imported)}<div class="alert alert-success">归档导入完成：新增 {$smarty.get.imported|escape|intval} 条，跳过 (已存在) {$smarty.get.skipped|escape|intval} 条</div>{/if}
     {if $orphan_msg}<div class="alert alert-success">{$orphan_msg|escape}</div>{/if}
 
     <!-- 统计卡片 -->
     <div class="stat-grid">
         <div class="stat-card">
-            <div class="stat-num">{$data['today_upload']}</div>
+            <div class="stat-num">{$data.today_upload|escape}</div>
             <div class="stat-label">今日上传</div>
         </div>
         <div class="stat-card">
-            <div class="stat-num">{$data['week_upload']}</div>
+            <div class="stat-num">{$data.week_upload|escape}</div>
             <div class="stat-label">近 7 天</div>
         </div>
         <div class="stat-card">
-            <div class="stat-num">{$data['online_total']}</div>
-            <div class="stat-label">在线记录(主库)</div>
+            <div class="stat-num">{$data.online_total|escape}</div>
+            <div class="stat-label">在线记录 (主库)</div>
         </div>
         <div class="stat-card">
-            <div class="stat-num">{$archive_total}</div>
+            <div class="stat-num">{$archive_total|escape}</div>
             <div class="stat-label">已归档记录</div>
         </div>
     </div>
