@@ -48,7 +48,7 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 
 	//BMP转PNG;开启WebP且GD支持时,jpg/png/bmp一律转WebP(GIF保持动图原样)
 	if ($ext==='bmp') {
-		$ext=function_exists('imagewebp') ? 'webp' : 'png';
+		$ext=($webp && function_exists('imagewebp')) ? 'webp' : 'png';
 		$compress=1;
 	}elseif ($webp && in_array($ext,['jpg','png']) && function_exists('imagewebp')) {
 		$ext='webp';
