@@ -125,7 +125,7 @@ $e_accent=htmlspecialchars($accent, ENT_QUOTES, 'UTF-8');
                 <ul style="margin:0">
                     <li>单张不超过 <b><?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>MB</b>,一次最多 <b><?php echo (int)($config['web']['max_files'] ?? 10); ?> 张</b></li>
                     <li>支持格式:<b>jpg / png / gif / bmp / webp</b>(gif 动图保持原样,其余自动压缩并转存为更小的 WebP)</li>
-                    <li>超大图片会自动等比缩放(最长边 2560px),手机竖拍照片会按 EXIF 自动转正</li>
+                    <li>超大图片会自动等比缩放(最长边 <?php echo (int)($config['web']['img_max_side'] ?? 2560); ?>px),手机竖拍照片会按 EXIF 自动转正</li>
                     <li>为防滥用,每 IP 每小时有上传次数限制(默认 60 次,超限会提示稍后再试)</li>
                 </ul>
             </div>

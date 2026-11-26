@@ -68,7 +68,7 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 			</div>
 			<div class="form-group">
 				<label for="password">密码</label>
-				<input type="password" class="form-control" id="password" name="password" placeholder="至少6位" autocomplete="<?php echo $mode==='register'?'new-password':'current-password'; ?>" required>
+				<input type="password" class="form-control" id="password" name="password" placeholder="<?php echo $mode==='register'?'12-64位,需同时包含字母和数字':'请输入密码'; ?>" autocomplete="<?php echo $mode==='register'?'new-password':'current-password'; ?>" required>
 			</div>
 			<?php if ($mode==='register'): ?>
 			<div class="form-group">

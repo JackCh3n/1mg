@@ -129,7 +129,7 @@ function set_cache($key,$data){
 	static $dir;
 	$dir=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR;
 	if (!is_dir($dir)) {
-		mkdir($dir,0666);
+		mkdir($dir,0755);
 	}
 	if (!file_exists($dir.$key)) {
 		file_put_contents($dir.$key,encdec_openssl(json_encode($data)),LOCK_EX);
