@@ -268,8 +268,10 @@ if (!empty($_POST)) {
 			$oldpass=(string)$_POST['oldpass'];
 			$newpass=(string)$_POST['newpass'];
 			$newpass2=(string)$_POST['newpass2'];
-			if (strlen($newpass)<6 || strlen($newpass)>64) {
-				$save_error='新密码长度需在6到64位之间';
+			if (strlen($newpass)<12 || strlen($newpass)>64) {
+				$save_error='新密码长度需在12到64位之间';
+			}elseif (!preg_match('/[A-Za-z]/',$newpass) || !preg_match('/[0-9]/',$newpass)) {
+				$save_error='新密码需同时包含字母和数字';
 			}elseif ($newpass!==$newpass2) {
 				$save_error='两次输入的新密码不一致';
 			}elseif (!admin_change_password($oldpass,$newpass)) {

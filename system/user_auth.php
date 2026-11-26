@@ -27,10 +27,11 @@ function user_register($username, $password, $confirm){
 	if ($password !== $confirm) {
 		return '两次输入的密码不一致';
 	}
-	// 检查常见弱密码（简单字典）
-	$weak_passwords = ['password', '12345678', 'qwerty', 'abc123', 'admin123', 'letmein', 'welcome', 'monkey', 'dragon', 'master'];
-	if (in_array(strtolower($password), $weak_passwords)) {
-		return '密码过于简单，请使用更复杂的组合';
+	//常见弱密码拦截: 去掉数字/符号后缀后命中弱词即拒绝(原字典均为8位以下,在12位长度规则下永不命中,已重写)
+	$base = strtolower((string)preg_replace('/[0-9_\-\!@#\$%\^&\*\.\?]+$/', '', $password));
+	$weak_words = ['password', 'qwerty', 'letmein', 'welcome', 'monkey', 'dragon', 'master', 'admin', 'iloveyou'];
+	if (in_array($base, $weak_words, true)) {
+		return '密码包含常见弱词，请更换为更独特的组合';
 	}
 	//注册限速：每 IP 每小时最多 5 次 (复用 rate_limit 表，槽位加 reg 前缀)
 	try {

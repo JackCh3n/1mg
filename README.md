@@ -1,5 +1,5 @@
 # 1mg 图床
-当前版本 **v1.14.6**（SemVer，单一来源 VERSION，变更记录见 CHANGELOG.md）
+当前版本 **v1.14.7**（SemVer，单一来源 VERSION，变更记录见 CHANGELOG.md）
 
 ## 实现功能
 

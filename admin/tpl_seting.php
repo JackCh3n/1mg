@@ -379,7 +379,7 @@
                 <input type="hidden" name="_csrf" value="{$csrf}">
                 <input type="hidden" name="action" value="password">
                 <div class="form-row"><label>原密码</label><input type="password" class="form-control" name="oldpass" required style="max-width:280px"></div>
-                <div class="form-row"><label>新密码</label><input type="password" class="form-control" name="newpass" placeholder="至少 6 位" required style="max-width:280px"></div>
+                <div class="form-row"><label>新密码</label><input type="password" class="form-control" name="newpass" placeholder="12-64位,需同时包含字母和数字" required style="max-width:280px"></div>
                 <div class="form-row"><label>确认新密码</label><input type="password" class="form-control" name="newpass2" required style="max-width:280px"></div>
                 <div class="form-actions"><button class="btn btn-primary" type="submit">修改密码</button></div>
             </form>

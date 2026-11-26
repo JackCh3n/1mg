@@ -23,14 +23,13 @@ DirectoryIndex index.php index.html
   </IfModule>
 </FilesMatch>
 
-# 禁止在 data 和 cache 目录执行 PHP（只允许读取）
-<FilesMatch "\.(php|php3|php4|php5|phtml)$">
-  <IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteRule ^data/ - [F,L]
-    RewriteRule ^cache/ - [F,L]
-  </IfModule>
-</FilesMatch>
+# 禁止外部访问 data/cache 目录(数据库/归档/缓存均不应对外;下载走 admin 脚本读盘输出)
+# 注意: RewriteRule 不允许放在 <FilesMatch> 容器内(Apache 会报 "RewriteRule not allowed here" 500)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^data/ - [F,L]
+  RewriteRule ^cache/ - [F,L]
+</IfModule>
 
 # 安全响应头增强
 <IfModule mod_headers.c>

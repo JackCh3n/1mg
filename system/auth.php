@@ -213,7 +213,11 @@ function admin_change_password($oldpass,$newpass){
 	if (empty($_SESSION['admin_id'])) {
 		return false;
 	}
-	if (!is_string($newpass) || strlen($newpass)<6 || strlen($newpass)>64) {
+	//与前台注册密码策略一致: 12-64位且同时包含字母和数字
+	if (!is_string($newpass) || strlen($newpass)<12 || strlen($newpass)>64) {
+		return false;
+	}
+	if (!preg_match('/[A-Za-z]/',$newpass) || !preg_match('/[0-9]/',$newpass)) {
 		return false;
 	}
 	$row=$GLOBALS['db']->get('admin',['password_hash'],['id'=>$_SESSION['admin_id']]);
