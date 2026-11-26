@@ -223,32 +223,6 @@ $(function () {
         }
     });
 
-    /* ---------- 移动端汉堡菜单 ---------- */
-    var hamburger = document.getElementById('nav-hamburger');
-    var navLinks = document.getElementById('nav-links');
-    if (hamburger && navLinks) {
-        hamburger.addEventListener('click', function () {
-            this.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-        
-        // 点击链接后自动关闭菜单
-        navLinks.querySelectorAll('a').forEach(function(link) {
-            link.addEventListener('click', function() {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            });
-        });
-        
-        // 点击页面其他区域关闭菜单
-        document.addEventListener('click', function(e) {
-            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            }
-        });
-    }
-
     /* ---------- 内容区切换 ---------- */
     function switchTo(nav) {
         $('#nav-links a').removeClass('active');
@@ -290,8 +264,10 @@ $(function () {
                 dropZoneTitle: '把图片拖拽到这里,或点击选择',
                 dropZoneClickTitle: '',
                 maxFileSize: MAX_SIZE * 1024,
+                maxFilesNum: MAX_COUNT,
+                maxFileCount: MAX_COUNT,
                 showCaption: false,
-        autoOrientImage: false,
+                autoOrientImage: false,
                 showZoom: false,
                 showCancel: false,
                 fileActionSettings: { showZoom: false, showDrag: false, removeIcon: '删除', uploadIcon: '上传', removeTitle: '删除这张图片', uploadTitle: '上传这张图片' }
@@ -369,4 +345,12 @@ $(function () {
         bindBack();
         return false;
     });
+
+    //带 #today/#about/#contact/#tos 直接打开或站内其他链接跳转过来时,也切到对应内容(此前只响应导航点击)
+    function openHash() {
+        var h = (location.hash || '').slice(1);
+        if (/^(today|about|contact|tos)$/.test(h)) { $('#' + h).trigger('click'); }
+    }
+    $(window).on('hashchange', openHash);
+    openHash();
 });

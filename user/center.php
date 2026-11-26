@@ -58,8 +58,8 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php echo $e_title; ?> · 用户中心</title>
-	<link href="../view/site.css?v=20261029" rel="stylesheet">
-	<script src="../view/theme.js?v=20261029"></script>
+	<link href="../view/site.css?v=20261127" rel="stylesheet">
+	<script src="../view/theme.js?v=20261127"></script>
 </head>
 <body>
 <nav class="site-nav">
@@ -82,33 +82,6 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 	</div>
 </nav>
 
-<script>
-// 移动端汉堡菜单
-(function(){
-    var hamburger = document.getElementById('nav-hamburger');
-    var navLinks = document.querySelector('.nav-links');
-    if (hamburger && navLinks) {
-        hamburger.addEventListener('click', function () {
-            this.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-        
-        navLinks.querySelectorAll('a').forEach(function(link) {
-            link.addEventListener('click', function() {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            });
-        });
-        
-        document.addEventListener('click', function(e) {
-            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            }
-        });
-    }
-})();
-</script>
 
 <div class="container">
 	<div class="hero" style="padding:34px 0 10px">

@@ -75,8 +75,8 @@ if (empty($row)) {
 	<meta charset="UTF-8"/>
 	<title><?php echo $e_title; ?> · 图片详情</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="view/site.css?v=20261029" rel="stylesheet">
-	<script src="view/theme.js?v=20261029"></script>
+	<link href="view/site.css?v=20261127" rel="stylesheet">
+	<script src="view/theme.js?v=20261127"></script>
 </head>
 <body>
 <nav class="site-nav">
@@ -103,31 +103,6 @@ if (empty($row)) {
 <script src="view/vendor/qrcode.min.js"></script>
 <script>
 (function(){
-    // 移动端汉堡菜单
-    var hamburger = document.getElementById('nav-hamburger');
-    var navLinks = document.querySelector('.nav-links');
-    if (hamburger && navLinks) {
-        hamburger.addEventListener('click', function () {
-            this.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-        
-        // 点击链接后自动关闭菜单
-        navLinks.querySelectorAll('a').forEach(function(link) {
-            link.addEventListener('click', function() {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            });
-        });
-        
-        // 点击页面其他区域关闭菜单
-        document.addEventListener('click', function(e) {
-            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            }
-        });
-    }
     
     var tabs=document.getElementById('share-tabs');
     if (tabs) {
