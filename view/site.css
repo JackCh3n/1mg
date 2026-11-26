@@ -154,10 +154,11 @@ h1, h2, h3 { line-height: 1.3; }
 		padding: 20px 0;
 		box-shadow: 0 4px 12px rgba(0,0,0,.1);
 		transform: translateY(-150%);
-		transition: transform .3s ease;
+		visibility: hidden;
+		transition: transform .3s ease, visibility .3s;
 		z-index: 100;
 	}
-	.site-nav .nav-links.active { transform: translateY(0); }
+	.site-nav .nav-links.active { transform: translateY(0); visibility: visible; }
 	.site-nav .nav-links a {
 		display: block;
 		padding: 14px 24px;
@@ -165,7 +166,18 @@ h1, h2, h3 { line-height: 1.3; }
 		text-align: center;
 		font-size: 16px;
 	}
-	.nav-hamburger { display: inline-flex; align-items: center; justify-content: center; }
+	.nav-hamburger { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; order: 3; margin-left: 8px; flex: none; }
+	.nav-hamburger span { margin: 2.5px 0; }
+	.nav-hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+	.nav-hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+	.site-nav .nav-right { gap: 2px; min-width: 0; }
+	.site-nav .nav-right a { white-space: nowrap; padding: 6px 7px; font-size: 13.5px; }
+	.site-nav .brand { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+	/* 文档表格/代码块窄屏内部横向滚动,不撑破页面 */
+	.prose table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+	.prose pre { overflow-x: auto; }
+	.prose p > code { word-break: break-all; }
+	.prose table code { white-space: nowrap; }
 }
 
 /* 主题切换按钮 */
@@ -602,16 +614,21 @@ textarea.form-control { resize: vertical; }
 
 /* 响应式 */
 @media (max-width: 720px) {
-	.site-nav .nav-links { display: none; }
 	.hero { padding: 34px 0 20px; }
 }
 
 /* 移动端: 上传按钮改单列堆叠,避免窄屏挤压 */
 @media (max-width: 640px) {
-	.file-input { grid-template-columns: 1fr; }
+	/* 选择按钮独占首行,清除/取消/上传在第二行平分,预览区整行(桌面端的 grid-area 定位在此重置,否则会撑出隐式列把预览区挤成窄条) */
+	.file-input { grid-template-columns: 1fr 1fr; }
 	.file-input > * { grid-column: 1 / -1; }
-	.file-input > .btn { width: 100%; margin-right: 0; }
-	.file-input > .btn-file { order: -1; }
+	.file-input > .btn { width: 100%; margin-right: 0; grid-area: auto; }
+	.file-input > .btn-file { grid-column: 1 / -1; order: -2; }
+	.file-input > .fileinput-remove-button,
+	.file-input > .fileinput-cancel-button,
+	.file-input > .fileinput-upload-button { order: -1; }
+	.table-wrap, .acard-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+	.table th, .table td { white-space: nowrap; }
 }
 
 

@@ -47,8 +47,8 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php echo $e_title; ?> · <?php echo $mode==='register'?'注册':'登录'; ?></title>
-	<link href="../view/site.css?v=20261029" rel="stylesheet">
-	<script src="../view/theme.js?v=20261029"></script>
+	<link href="../view/site.css?v=20261127" rel="stylesheet">
+	<script src="../view/theme.js?v=20261127"></script>
 </head>
 <body>
 <div class="login-wrap">
@@ -68,7 +68,7 @@ $e_csrf=htmlspecialchars(csrf_token(),ENT_QUOTES,'UTF-8');
 			</div>
 			<div class="form-group">
 				<label for="password">密码</label>
-				<input type="password" class="form-control" id="password" name="password" placeholder="至少6位" autocomplete="<?php echo $mode==='register'?'new-password':'current-password'; ?>" required>
+				<input type="password" class="form-control" id="password" name="password" placeholder="<?php echo $mode==='register'?'12-64位,需同时包含字母和数字':'请输入密码'; ?>" autocomplete="<?php echo $mode==='register'?'new-password':'current-password'; ?>" required>
 			</div>
 			<?php if ($mode==='register'): ?>
 			<div class="form-group">

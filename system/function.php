@@ -129,7 +129,7 @@ function set_cache($key,$data){
 	static $dir;
 	$dir=dirname(dirname(__FILE__)).DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR;
 	if (!is_dir($dir)) {
-		mkdir($dir,0666);
+		mkdir($dir,0755);
 	}
 	if (!file_exists($dir.$key)) {
 		file_put_contents($dir.$key,encdec_openssl(json_encode($data)),LOCK_EX);
@@ -309,8 +309,8 @@ function api_token_check($given){
 	if ($given==='') {
 		return false;
 	}
-	// 增强验证：令牌长度至少 16 字符，必须是十六进制格式（32 位 MD5 风格）
-	if (strlen($given) < 16 || !preg_match('/^[a-f0-9]{16,}$/i', $given)) {
+	//与后台可保存的令牌字符集一致(字母/数字/_/-,最长64),其余一律拒绝
+	if (!preg_match('/^[A-Za-z0-9_-]{1,64}$/', $given)) {
 		return false;
 	}
 	//旧配置的全局令牌
@@ -631,10 +631,10 @@ function db_init_sqlite($db){
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_date ON imginfo(date)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_token ON imginfo(delete_token)");
 	$pdo->exec("CREATE INDEX IF NOT EXISTS idx_user ON imginfo(user_id)");
-	//老库补列: 图片有效期 / B2文件ID
-	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN expire_at TEXT DEFAULT ''"); } catch (Exception $e) {}
-	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN b2_file_id TEXT DEFAULT ''"); } catch (Exception $e) {}
-	try { $pdo->exec("ALTER TABLE imginfo ADD COLUMN wd_path TEXT DEFAULT ''"); } catch (Exception $e) {}
+	//老库补列: 图片有效期 / B2文件ID / WebDAV路径(先查列再补,避免重复补列在PDO上留下错误码,被后续 $db->error() 误判为失败)
+	db_add_column($pdo,'imginfo','expire_at',"TEXT DEFAULT ''");
+	db_add_column($pdo,'imginfo','b2_file_id',"TEXT DEFAULT ''");
+	db_add_column($pdo,'imginfo','wd_path',"TEXT DEFAULT ''");
 	//注册用户
 	$pdo->exec("CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -700,18 +700,33 @@ function db_init_sqlite($db){
 		used_day_count INTEGER DEFAULT 0
 	)");
 	//老库补列
-	try { $pdo->exec("ALTER TABLE mod_keys ADD COLUMN used_day TEXT DEFAULT ''"); } catch (Exception $e) {}
-	try { $pdo->exec("ALTER TABLE mod_keys ADD COLUMN used_day_count INTEGER DEFAULT 0"); } catch (Exception $e) {}
+	db_add_column($pdo,'mod_keys','used_day',"TEXT DEFAULT ''");
+	db_add_column($pdo,'mod_keys','used_day_count',"INTEGER DEFAULT 0");
 	//老库补列: OTP备份码(JSON数组,存哈希)
-	try { $pdo->exec("ALTER TABLE admin ADD COLUMN backup_codes TEXT DEFAULT ''"); } catch (Exception $e) {}
-	//老库补列: OTP备份码(JSON数组,存哈希)
-	try { $pdo->exec("ALTER TABLE admin ADD COLUMN backup_codes TEXT DEFAULT ''"); } catch (Exception $e) {}
+	db_add_column($pdo,'admin','backup_codes',"TEXT DEFAULT ''");
 	//首次运行播种默认管理员 admin / admin123456
 	$has_admin=$pdo->query("SELECT COUNT(*) FROM admin")->fetchColumn();
 	if (!$has_admin) {
 		$st=$pdo->prepare("INSERT INTO admin (username, password_hash) VALUES (?, ?)");
 		$st->execute(['admin', password_hash('admin123456', PASSWORD_DEFAULT)]);
 	}
+}
+
+/**
+ * 表缺少指定列时才补列
+ * @param PDO    $pdo
+ * @param string $table
+ * @param string $column
+ * @param string $definition 列定义(类型+默认值)
+ */
+function db_add_column($pdo, $table, $column, $definition){
+	$st=$pdo->query("PRAGMA table_info(".$table.")");
+	foreach ($st?$st->fetchAll(PDO::FETCH_ASSOC):[] as $col) {
+		if ($col['name']===$column) {
+			return;
+		}
+	}
+	$pdo->exec("ALTER TABLE ".$table." ADD COLUMN ".$column." ".$definition);
 }
 
 /**

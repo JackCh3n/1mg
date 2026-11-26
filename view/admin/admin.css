@@ -248,6 +248,12 @@ body.admin-body { display: flex; min-height: 100vh; }
 	.side { display: none; }
 	.stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
+/* 窄屏: 卡片标题允许换行(标题本身不被副标题挤成竖排),表格在卡片内横向滚动 */
+@media (max-width: 640px) {
+	.acard-head { flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px; white-space: nowrap; }
+	.acard-head .sub { flex: 1 1 160px; white-space: normal; }
+	.acard-body { padding: 14px 16px; }
+}
 
 /* 移动端后台导航(桌面隐藏,<=900px顶栏显示汉堡下拉) */
 .mobile-nav { position: relative; display: none; }

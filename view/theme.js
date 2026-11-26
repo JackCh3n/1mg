@@ -31,9 +31,6 @@
     }
 
     function apply() {
-        // 添加平滑过渡效果
-        document.body.style.transition = 'background .25s ease, color .25s ease';
-        
         root.setAttribute('data-skin', effectiveSkin());
         if (state.accent && /^#[0-9a-fA-F]{6}$/.test(state.accent)) {
             root.style.setProperty('--accent', state.accent);
@@ -72,4 +69,16 @@
         var t = ev.target.closest ? ev.target.closest('[data-mg-theme-toggle]') : null;
         if (t) { window.MGTheme.toggle(); }
     });
+
+    //前台移动端汉堡菜单(所有带 .nav-hamburger 的页面共用): 点按钮开合,点链接或空白处收起
+    //捕获阶段监听: 首页导航项的处理函数 return false 会阻止冒泡
+    document.addEventListener('click', function (ev) {
+        var btn = document.querySelector('.nav-hamburger'), links = document.querySelector('.site-nav .nav-links');
+        if (!btn || !links || !ev.target.closest) return;
+        var open = ev.target.closest('.nav-hamburger') ? !links.classList.contains('active') : false;
+        if (!open && ev.target.closest('.nav-links') && !ev.target.closest('a')) return;
+        btn.classList.toggle('active', open);
+        links.classList.toggle('active', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }, true);
 })();

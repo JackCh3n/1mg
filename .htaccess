@@ -43,7 +43,7 @@ DirectoryIndex index.php index.html
 # 禁止直接访问某些目录
 <IfModule mod_autoindex.c>
   Options -Indexes
-</IfIfModule>
+</IfModule>
 
 # 禁止访问系统临时文件
 <FilesMatch "^\.">

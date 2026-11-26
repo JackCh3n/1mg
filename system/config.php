@@ -24,11 +24,8 @@ if (!headers_sent()) {
 	header('X-Frame-Options: DENY');
 	// Referrer 策略
 	header('Referrer-Policy: strict-origin-when-cross-origin');
-	// Content-Security-Policy (严格模式)
-	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'");
-	// Cross-Origin 策略
+	// Cross-Origin 策略(不下发 COEP require-corp: 它会拦掉 CDN/B2/WebDAV 等跨域图片)
 	header('Cross-Origin-Opener-Policy: same-origin');
-	header('Cross-Origin-Embedder-Policy: require-corp');
 	header('Cross-Origin-Resource-Policy: same-origin');
 }
 //会话安全:cookie禁JS读取/限同站跳转,启用严格模式防会话ID注入
@@ -118,6 +115,18 @@ if (is_file($user_config_file)) {
 	unset($user_config);
 }
 unset($user_config_file);
+//CSP 在配置合并后下发: 图片来源除本站/https外,还要放行后台配置的图片域名(CDN/B2/WebDAV 可能是 http 或其他域)
+if (!headers_sent()) {
+	$__img_src=[];
+	foreach (['cdn','b2_domain','wd_domain'] as $_k) {
+		$_u=isset($config['web'][$_k])?parse_url((string)$config['web'][$_k]):false;
+		if ($_u && !empty($_u['scheme']) && !empty($_u['host']) && preg_match('/^https?$/i',$_u['scheme']) && preg_match('/^[A-Za-z0-9.\-]+$/',$_u['host'])) {
+			$__img_src[$_u['scheme'].'://'.$_u['host'].(isset($_u['port'])?':'.(int)$_u['port']:'')]=1;
+		}
+	}
+	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:".($__img_src?' '.implode(' ',array_keys($__img_src)):'')."; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'");
+	unset($__img_src,$_k,$_u);
+}
 //sqlite数据库文件统一解析为绝对路径(不受运行目录影响)
 if ($config['db']['database_type']==='sqlite') {
 	$__dbf=(string)$config['db']['database_file'];

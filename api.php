@@ -15,8 +15,8 @@ $need_token = isset($config['web']['api_token']) && trim((string)$config['web'][
     <meta charset="UTF-8"/>
     <title><?php echo $e_title; ?> · API 文档</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="view/site.css?v=20261029" rel="stylesheet">
-    <script src="view/theme.js?v=20261029"></script>
+    <link href="view/site.css?v=20261127" rel="stylesheet">
+    <script src="view/theme.js?v=20261127"></script>
     <style>
     .api-doc h2{margin-top:34px}
     .api-doc table{width:100%;border-collapse:collapse;font-size:14px}
@@ -55,7 +55,7 @@ $need_token = isset($config['web']['api_token']) && trim((string)$config['web'][
             <p><code>POST <?php echo $e_server; ?>/upload.php</code></p>
             <table>
                 <tr><th>参数</th><th>位置</th><th>说明</th></tr>
-                <tr><td><code>file</code></td><td>multipart 表单字段 (必填)</td><td>图片文件，≤5MB，支持 jpg/png/gif/bmp</td></tr>
+                <tr><td><code>file</code></td><td>multipart 表单字段 (必填)</td><td>图片文件，≤<?php echo (int)($config['web']['max_size_mb'] ?? 5); ?>MB，支持 jpg/png/gif/bmp/webp</td></tr>
                 <tr><td><code>api_token</code></td><td>表单字段或请求头 <code>X-API-Token</code></td><td><?php echo $need_token ? '必填 (本站已开启接口鉴权)' : '本站未开启鉴权，可不传'; ?></td></tr>
             </table>
             <p>成功响应:</p>
