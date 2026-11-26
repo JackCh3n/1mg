@@ -79,9 +79,10 @@ if ($file_ext === 'gif') {
 	if ($size_info['mime']!=='image/gif' || !preg_match('/^GIF8[79]a$/', $header)) {
 		json_exit(['code'=>110,'error'=>'文件格式损坏或不是有效的 GIF 图片']);
 	}
-	if ($size_info[0] > 4096 || $size_info[1] > 4096) {
-		json_exit(['code'=>110,'error'=>'图片尺寸过大，最大支持 4096x4096 像素']);
-	}
+}
+//尺寸上限按真实类型判断:GIF 内容改成 .png 等扩展名上传时同样会被 GD 解码
+if ($size_info['mime']==='image/gif' && ($size_info[0] > 4096 || $size_info[1] > 4096)) {
+	json_exit(['code'=>110,'error'=>'图片尺寸过大，最大支持 4096x4096 像素']);
 }
 
 //计算md5
