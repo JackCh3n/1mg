@@ -73,23 +73,14 @@ if (!scan_image_safe($file['tmp_name'])) {
 	json_exit(['code'=>110,'error'=>'图片内容不合法']);
 }
 
-//GIF 特殊处理：额外检查是否为有效 GIF 格式（防止伪 GIF 攻击）
+//GIF 不重编码,额外校验文件头与尺寸(尺寸取自 getimagesize,防超大 GIF)
 if ($file_ext === 'gif') {
-	$fp = fopen($file['tmp_name'], 'rb');
-	if ($fp) {
-		$header = fread($fp, 6);
-		fclose($fp);
-		if (!preg_match('/^(GIF8[7a]a)/', $header)) {
-			json_exit(['code'=>110,'error'=>'文件格式损坏或不是有效的 GIF 图片']);
-		}
-		//检查 GIF 尺寸是否合理（防超大 GIF 拒绝服务）
-		if (strlen($header) >= 6) {
-			$width = ord($header[4]) | (ord($header[5]) << 8);
-			$height = ord($header[2]) | (ord($header[3]) << 8);
-			if ($width > 4096 || $height > 4096) {
-				json_exit(['code'=>110,'error'=>'图片尺寸过大，最大支持 4096x4096 像素']);
-			}
-		}
+	$header=(string)file_get_contents($file['tmp_name'], false, null, 0, 6);
+	if ($size_info['mime']!=='image/gif' || !preg_match('/^GIF8[79]a$/', $header)) {
+		json_exit(['code'=>110,'error'=>'文件格式损坏或不是有效的 GIF 图片']);
+	}
+	if ($size_info[0] > 4096 || $size_info[1] > 4096) {
+		json_exit(['code'=>110,'error'=>'图片尺寸过大，最大支持 4096x4096 像素']);
 	}
 }
 
@@ -153,7 +144,10 @@ if (!empty($config['web']['ttl_enabled'])) {
 }
 
 //压缩保存(WebP转换按后台设置,最终扩展名以压缩结果为准;落盘路径=基础名+最终扩展名)
-$name_base=date('His').mt_rand(100,999);
+//文件名: 时分秒+3位随机数,同目录下已被占用(任意扩展名)则重取,避免覆盖别人的图片
+do {
+	$name_base=date('His').random_int(100,999);
+} while (glob(ROOT.$file_path.'/'.$name_base.'.*'));
 $result=compress_image($file['tmp_name'],ROOT.$file_path.'/'.$name_base,$file_ext,!empty($config['web']['webp_enabled']));
 if (!$result['ok']) {
 	json_exit(['code'=>110,'error'=>'文件保存失败']);

@@ -157,7 +157,8 @@ if (!empty($_POST)) {
 				$save_error='B2 自定义域名格式不正确(需 http(s):// 开头)';
 			}elseif ($save_error==='' && ($b2_sync_batch<1 || $b2_sync_batch>100)) {
 				$save_error='每轮同步数量需在1-100之间';
-			}else{
+			}
+			if ($save_error==='') {
 				if (save_user_config(['web'=>[
 					'b2_enabled'=>$b2_enabled,
 					'b2_key_id'=>$b2_key_id,

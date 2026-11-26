@@ -56,24 +56,31 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 	}
 	$dest=$dest_base.'.'.$ext;
 
+	//按文件真实类型(mime)解码,不看扩展名:扩展名可能与内容不符,或已被上面改写为目标格式
 	$img=null;
-	if ($mime==='image/jpeg' || $ext==='jpg') {
+	if ($mime==='image/jpeg') {
 		$img=@imagecreatefromjpeg($src);
 		if ($img && function_exists('exif_read_data')) {
 			$img=exif_rotate_image($img, @exif_read_data($src));
 		}
-	}elseif ($mime==='image/png' || $ext==='png') {
+	}elseif ($mime==='image/png') {
 		$img=@imagecreatefrompng($src);
 	}elseif ($mime==='image/gif') {
 		$img=@imagecreatefromgif($src);
-	}elseif ($mime==='image/webp' || $ext==='webp') {
-		$img=@imagecreatefromwebp($src);
+	}elseif ($mime==='image/webp') {
+		$img=function_exists('imagecreatefromwebp')?@imagecreatefromwebp($src):null;
 		//WebP输入统一重编码输出(剥离元数据),关闭WebP时也保持webp
 		$ext='webp';
 		$compress=1;
 	}elseif (in_array($mime,['image/bmp','image/x-ms-bmp','image/x-bmp'])) {
-		$img=@imagecreatefrombmp($src);
+		$img=function_exists('imagecreatefrombmp')?@imagecreatefrombmp($src):null;
 	}
+	if (!$img) {
+		//解码失败只能原样保存,扩展名必须与真实内容一致
+		$real=['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp'];
+		$ext=isset($real[$mime])?$real[$mime]:'bmp';
+	}
+	$dest=$dest_base.'.'.$ext;
 	if (!$img) {
 		//GD解码失败时,前面getimagesize已通过,保守起见原样保存
 		if (!@move_uploaded_file($src,$dest) && !@rename($src,$dest)) {
@@ -86,7 +93,10 @@ function compress_image($src, $dest_base, $ext, $webp=false){
 	//真彩色+保留透明通道
 	if (!imageistruecolor($img)) {
 		$tmp=imagecreatetruecolor(imagesx($img),imagesy($img));
+		//先关混合再填充,否则透明色填不进去,调色板PNG的透明区域会变黑
+		imagealphablending($tmp,false);
 		imagefill($tmp,0,0,imagecolorallocatealpha($tmp,0,0,0,127));
+		imagealphablending($tmp,true);
 		imagecopy($tmp,$img,0,0,0,0,imagesx($img),imagesy($img));
 		imagedestroy($img);
 		$img=$tmp;
